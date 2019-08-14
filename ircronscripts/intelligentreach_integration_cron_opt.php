@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.42 Last updated by Kire on 24/08/2016 **/
+/** Version 1.0.43 Last updated by Kire on 02/09/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,8 +13,8 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionNumber = "1.0.42";
-	private $_lastUpdated = "24/08/2016";
+	private $_versionNumber = "1.0.43";
+	private $_lastUpdated = "02/09/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed";
 	private $_fileNameTemp = "";
@@ -289,9 +289,9 @@ class IntelligentReach
 				for($i = 0; $i < count($gallery['images']); $i++)
 					$feedData .=  " <ir_parent_image_".($i + 1)."><![CDATA[". $baseUrl . "media/catalog/product" . $gallery['images'][$i]['file']."]]></ir_parent_image_".($i + 1).">";
 			}
-			$feedData .= $this->getCategoryData($product,$args['store_id'],$parentProduct);
 		}
 
+		$feedData .= $this->getCategoryData($product,$args['store_id'],$parentProduct);
 		$feedData .=  '</product>'.PHP_EOL;
 		if (is_object($parentIds))
 			unset($parentIds);

@@ -2,7 +2,7 @@
 <config>
 	<modules>
 	   <IntelligentReach_WestfieldPayment>
-		  <version>1.0.42</version>
+		  <version>1.0.43</version>
 	   </IntelligentReach_WestfieldPayment>
 	</modules>
 	<global>
