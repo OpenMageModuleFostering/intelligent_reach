@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.38 Last updated by Kire on 16/06/2016 **/
+/** Version 1.0.39 Last updated by Kire on 27/06/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,8 +13,8 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionNumber = "1.0.38";
-	private $_lastUpdated = "16/06/2016";
+	private $_versionNumber = "1.0.39";
+	private $_lastUpdated = "27/06/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed_Quantity_And_Price";
 	private $_fileNameTemp = "";
@@ -104,7 +104,7 @@ class IntelligentReach
 		$products = Mage::getModel('catalog/product')
 				->getCollection()
 				->addStoreFilter($storeId)
-				->addAttributeToSelect('price', 'left');
+				->addAttributeToSelect(array('price', 'sku'), 'left');
 		return $this->addAdditionalAttributeFilters($products);
 	}
 	
@@ -162,7 +162,8 @@ class IntelligentReach
 			$isInStock = true; // if we don't manage, "is in stock" is always true.
 
 		$feedData .= '<product>';
-		$feedData .= '<entity_id><![CDATA['. $args['row']['entity_id'].']]></entity_id>';
+		$feedData .= '<entity_id><![CDATA['.$args['row']['entity_id'].']]></entity_id>';
+		$feedData .= '<sku><![CDATA['.$args['row']['sku'].']]></sku>';
 		$feedData .= '<qty><![CDATA['.(int)$args['row']['qty'].']]></qty>';
 		$feedData .= '<is_in_stock><![CDATA['.(int)$isInStock.']]></is_in_stock>';
 		$feedData .= '<price><![CDATA['.$args['row']['price'].']]></price>';
