@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.43 Last updated by Kire on 02/09/2016 **/
+/** Version 1.0.44 Last updated by Kire on 31/10/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,8 +13,14 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionNumber = "1.0.43";
-	private $_lastUpdated = "02/09/2016";
+	function __construct()
+	{
+		$this->_scriptName = basename($_SERVER['PHP_SELF']);
+	}
+	
+	private $_scriptName = "";
+	private $_versionNumber = "1.0.44";
+	private $_lastUpdated = "31/10/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed_Quantity_And_Price";
 	private $_fileNameTemp = "";
@@ -74,7 +80,7 @@ class IntelligentReach
 		echo "<p>Sorry a Store Id was not provided, please choose a store from the options below.</p>";
 		$this->getStores();
 		echo "<p>If you want to skip this step in the future, you can manually enter the Store Id in the URL.<br />";
-		echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
+		echo "e.g. http://www.exampledomain.com/$this->_scriptName?storeid=1</p>";
 		echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
 		echo "<h5>Version $this->_versionNumber <br />Last updated on $this->_lastUpdated</h5></div>";
 	}

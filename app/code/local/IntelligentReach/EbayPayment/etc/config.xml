@@ -2,7 +2,7 @@
 <config>
 	<modules>
 	   <IntelligentReach_EbayPayment>
-		  <version>1.0.43</version>
+		  <version>1.0.44</version>
 	   </IntelligentReach_EbayPayment>
 	</modules>
 	<global>

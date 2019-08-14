@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.43 Last updated by Kire on 24/08/2016 **/
+/** Version 1.0.44 Last updated by Kire on 31/10/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -12,11 +12,17 @@ $ir->run();
 
 class IntelligentReach
 {
+	function __construct()
+	{
+		$this->_scriptName = basename($_SERVER['PHP_SELF']);
+	}
+	
+	private $_scriptName = "";
 	private $_splitby = 100;
 	private $_amountOfProductsPerPage = 100;
 	private $_lastPageNumber = 0;
-	private $_versionNumber = "1.0.43";
-	private $_lastUpdated = "24/08/2016";
+	private $_versionNumber = "1.0.44";
+	private $_lastUpdated = "31/10/2016";
 
 	public function run() 
 	{
@@ -71,7 +77,7 @@ class IntelligentReach
 		echo "<p>Sorry a Store Id was not provided, please choose a store from the options below.</p>";
 		$this->getStores();
 		echo "<p>If you want to skip this step in the future, you can manually enter the Store Id in the URL.<br />";
-		echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
+		echo "e.g. http://www.exampledomain.com/$this->_scriptName?storeid=1</p>";
 		echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
 		echo "<h5>Version $this->_versionNumber <br />Last updated on $this->_lastUpdated</h5></div>";
 	}
@@ -110,23 +116,23 @@ class IntelligentReach
 		echo "<h3>Instructions</h3>";
 		echo "<p>The parameter <strong>'splitby'</strong> in the URL splits pages into sections, each page contains (unless specified otherwise) the default amount of 100 products.</p>";
 		echo "<p>So setting <strong>'splitby'</strong> to equal 100 will bring back 1,000 products per page and 10,000 products per section, if there are 40,000 products in the store then this will return 4 sections. </p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>splitby=100</strong></p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/$this->_scriptName?storeid=1&<strong>splitby=100</strong></p>";
 		echo "<p>You can also set the value of the number of products per page that is returned, by setting the parameter <strong>'amountofproducts'</strong> in the URL</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&splitby=100&<strong>amountofproducts=100</strong></p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/$this->_scriptName?storeid=1&splitby=100&<strong>amountofproducts=100</strong></p>";
 		echo "<p><strong>NB:</strong> The default value for <strong>'splitby'</strong> is 100 and for <strong>'amountofproducts'</strong> is 100.</p>";
 		echo "<h3>Other options</h3>";
 		echo "<p>You can retrieve all products by using the <strong>'getall'</strong> parameter</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>getall=1</strong></p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/$this->_scriptName?storeid=1&<strong>getall=1</strong></p>";
 		echo "<p>To enable the stripping of invalid XML characters add the <strong>'stripInvalidChars'</strong> parameter</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>stripInvalidChars=1</strong></p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/$this->_scriptName?storeid=1&<strong>stripInvalidChars=1</strong></p>";
 		echo "<p>To enable the converting of the first character in the XML tag from a number to a word, use the <strong>'convertNumberToWord'</strong> parameter.</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>convertNumberToWord=1</strong></p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/$this->_scriptName?storeid=1&<strong>convertNumberToWord=1</strong></p>";
 		echo "<p>To return all the parent product fields, use the <strong>'includeAllParentFields'</strong> parameter.</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>includeAllParentFields=1</strong></p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/$this->_scriptName?storeid=1&<strong>includeAllParentFields=1</strong></p>";
 		echo "<p>To include disabled products in the feed, use the <strong>'includeDisabled'</strong> parameter.</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>includeDisabled=1</strong></p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/$this->_scriptName?storeid=1&<strong>includeDisabled=1</strong></p>";
 		echo "<p>To include products of all types in the feed, use the <strong>'includeNonSimpleProducts'</strong> parameter.</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>includeNonSimpleProducts=1</strong></p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/$this->_scriptName?storeid=1&<strong>includeNonSimpleProducts=1</strong></p>";
 		echo "</div>";
 		echo "<div style='float:left; padding-left:50px;'><h5>Version $this->_versionNumber <br />Last updated on $this->_lastUpdated</h5></div>";
 	}
@@ -173,7 +179,7 @@ class IntelligentReach
 		{
 			$products = $this->getProducts($startPage);
 			if ($products->count() == 0)
-				Mage::log('File: intelligentreach_integration.php, Error: There are no products to export at page '.$startPage.' when the amount of products per page is '. $this->_amountOfProductsPerPage);
+				Mage::log('File: '.$this->_scriptName.', Error: There are no products to export at page '.$startPage.' when the amount of products per page is '. $this->_amountOfProductsPerPage);
 			else 
 			{
 				Mage::getSingleton('core/resource_iterator')
@@ -215,7 +221,7 @@ class IntelligentReach
 				  $value = $product->getResource()->getAttribute($key)->getFrontend()->getValue($product);
 
 				if (($key == 'url_path') || ($key == 'url_key'))
-				  $value = trim(str_replace('/intelligentreach_integration.php', '', $product->getProductUrl()));      
+				  $value = trim(str_replace($this->_scriptName.'/', '', $product->getProductUrl()));      
 
 				if ($key == 'image')
 				  $value = $baseUrl . "media/catalog/product" . $value;
@@ -288,7 +294,7 @@ class IntelligentReach
 			{
 				echo '<ir_parent_entity_id><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getId()).']]></ir_parent_entity_id>';
 				echo '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
-				echo '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
+				echo '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace($this->_scriptName.'/', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
 				echo '<ir_parent_image><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image>';
 				echo '<ir_parent_description><![CDATA['.$this->stripInvalidXMLCharacters($this->encodeValue($parentProduct->getDescription())).']]></ir_parent_description>';
 			}
@@ -390,7 +396,7 @@ class IntelligentReach
 				$value = $parentProduct->getResource()->getAttribute($key)->getFrontend()->getValue($parentProduct);
 
 			if (($key == 'url_path') || ($key == 'url_key'))
-				$value = trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()));      
+				$value = trim(str_replace($this->_scriptName.'/', '', $parentProduct->getProductUrl()));      
 
 			if ($key == 'image')
 				$value = $baseUrl . "media/catalog/product" . $value;

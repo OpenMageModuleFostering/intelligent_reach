@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.43 Last updated by Kire on 02/09/2016 **/
+/** Version 1.0.44 Last updated by Kire on 31/10/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,8 +13,14 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionNumber = "1.0.43";
-	private $_lastUpdated = "02/09/2016";
+	function __construct()
+	{
+		$this->_scriptName = basename($_SERVER['PHP_SELF']);
+	}
+	
+	private $_scriptName = "";
+	private $_versionNumber = "1.0.44";
+	private $_lastUpdated = "31/10/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed";
 	private $_fileNameTemp = "";
@@ -32,7 +38,7 @@ class IntelligentReach
 	private $_maxParentProductCacheSize = 100;
 
 	public function run()
-	{
+	{		
 		$storeId = (isset($_GET["storeid"]))? $_GET["storeid"] : false;
 
 		// If a store id was provided then print the products to the output.
@@ -90,7 +96,7 @@ class IntelligentReach
 		echo "<p>Sorry a Store Id was not provided, please choose a store from the options below.</p>";
 		$this->getStores();
 		echo "<p>If you want to skip this step in the future, you can manually enter the Store Id in the URL.<br />";
-		echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
+		echo "e.g. http://www.exampledomain.com/$this->_scriptName?storeid=1</p>";
 		echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
 		echo "<h3>Other options</h3>";
 		echo "<p>To enable the stripping of invalid XML characters set the <strong>'_stripInvalidChars'</strong> property to true</p>";
@@ -205,7 +211,7 @@ class IntelligentReach
 					$value = $product->getResource()->getAttribute($key)->getFrontend()->getValue($product);
 
 				if (($key == 'url_path') || ($key == 'url_key'))
-					$value = trim(str_replace('/intelligentreach_integration.php', '', $product->getProductUrl()));
+					$value = trim(str_replace($this->_scriptName.'/', '', $product->getProductUrl()));
 
 				if ($key == 'image')
 					$value = $baseUrl . "media/catalog/product" . $value;
@@ -278,7 +284,7 @@ class IntelligentReach
 			{
 				$feedData .=  '<ir_parent_entity_id><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getId()).']]></ir_parent_entity_id>';
 				$feedData .=  '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
-				$feedData .=  '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
+				$feedData .=  '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace($this->_scriptName.'/', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
 				$feedData .=  '<ir_parent_image><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image>';
 				$feedData .=  '<ir_parent_description><![CDATA['.$this->stripInvalidXMLCharacters($this->encodeValue($parentProduct->getDescription())).']]></ir_parent_description>';
 			}
@@ -409,7 +415,7 @@ class IntelligentReach
 				$value = $parentProduct->getResource()->getAttribute($key)->getFrontend()->getValue($parentProduct);
 
 			if (($key == 'url_path') || ($key == 'url_key'))
-				$value = trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()));
+				$value = trim(str_replace($this->_scriptName.'/', '', $parentProduct->getProductUrl()));
 
 			if ($key == 'image')
 				$value = $baseUrl . "media/catalog/product" . $value;
