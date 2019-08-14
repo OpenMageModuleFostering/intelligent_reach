@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.37 Last updated by Kire on 18/05/2016 **/
+/** Version 1.0.38 Last updated by Kire on 16/06/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,7 +13,8 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionDisplay = "Version 1.0.37 <br />Last updated on 18/05/2016";
+	private $_versionNumber = "1.0.38";
+	private $_lastUpdated = "16/06/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed";
 	private $_fileNameTemp = "";
@@ -26,6 +27,8 @@ class IntelligentReach
 	private $_includeAllParentFields = false;
 	private $_stripInvalidChars = false;
 	private $_convertNumberToWord = false;
+	private $_includeDisabled = false;
+	private $_includeNonSimpleProducts = false;
 
 	public function run()
 	{
@@ -38,8 +41,8 @@ class IntelligentReach
 			$this->_fileNameTemp = tempnam("", $this->_fileName);
 			echo "Temp File created: ". $this->_fileNameTemp."<br />";
 			$time = microtime(true);
-			file_put_contents($this->_fileNameTemp, '<?xml version="1.0" encoding="utf-8"?>
-					<products version="1.0.37" type="cron">', LOCK_EX);
+			file_put_contents($this->_fileNameTemp, "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+					<products version=\"$this->_versionNumber\" type=\"cron\">", LOCK_EX);
 			$this->runTheTask($storeId);
 			file_put_contents($this->_fileNameTemp, '</products>', FILE_APPEND | LOCK_EX);
 
@@ -89,13 +92,12 @@ class IntelligentReach
 		echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
 		echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
 		echo "<h3>Other options</h3>";
-		echo "<p>To enable the stripping of invalid XML characters add the <strong>'stripInvalidChars'</strong> parameter</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>stripInvalidChars=1</strong></p>";
-		echo "<p>To enable the converting of the first character in the XML tag from a number to a word, use the <strong>'convertNumberToWord'</strong> parameter.</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>convertNumberToWord=1</strong></p>";
-		echo "<p>To return all the parent product fields, use the <strong>'includeAllParentFields'</strong> parameter.</p>";
-		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>includeAllParentFields=1</strong></p>";
-		echo "<h5>".$this->_versionDisplay."</h5></div>";
+		echo "<p>To enable the stripping of invalid XML characters set the <strong>'_stripInvalidChars'</strong> property to true</p>";
+		echo "<p>To enable the converting of the first character in the XML tag from a number to a word, set the <strong>'_convertNumberToWord'</strong> property to true.</p>";
+		echo "<p>To return all the parent product fields, set the <strong>'_includeAllParentFields'</strong> property to true.</p>";
+		echo "<p>To include disabled products in the feed, set the <strong>'_includeDisabled'</strong> property to true.</p>";
+		echo "<p>To include products of all types in the feed, set the <strong>'_includeNonSimpleProducts'</strong> property to true.</p>";
+		echo "<h5>Version $this->_versionNumber <br />Last updated on $this->_lastUpdated</h5></div>";
 	}
 
 	/**
@@ -120,10 +122,27 @@ class IntelligentReach
 
 	public function getProductCollection($storeId)
 	{
-		return Mage::getModel('catalog/product')
+		$products = Mage::getModel('catalog/product')
 					->getCollection()
 					->addStoreFilter($storeId)
 					->addAttributeToSelect('*');
+		return $this->addAdditionalAttributeFilters($products);
+	}
+	
+	public function addAdditionalAttributeFilters($products)
+	{
+		if(Mage::app()->getStore()->getConfig('catalog/frontend/flat_catalog_product') == 1)
+			Mage::app()->getStore()->setConfig('catalog/frontend/flat_catalog_product', 0);
+		
+		if($this->_includeDisabled)
+			$products->addAttributeToFilter('status', array('gt' => 0));
+		else
+			$products->addAttributeToFilter('status', array('eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED));
+		
+		if(!$this->_includeNonSimpleProducts)
+			$products->addAttributeToFilter('type_id', array('eq' => 'simple'));
+				
+		return $products;
 	}
 
 	// Run the task
@@ -174,6 +193,14 @@ class IntelligentReach
 			if (isset($parentIds[0]))
 				$parentProduct = $this->getParentProduct($parentIds[0]);// use already loaded parent if available
 		}
+		
+		if((($product->getStatus() == Mage_Catalog_Model_Product_Status::STATUS_DISABLED) 
+			|| ((isset($parentProduct)) && ($parentProduct->getStatus() == Mage_Catalog_Model_Product_Status::STATUS_DISABLED)))
+				&& !$this->_includeDisabled)
+		{
+			return;
+		}
+		
 		$feedData .= '<product>';
 		foreach ($product->getData() as $key => $value)
 		{
@@ -233,11 +260,7 @@ class IntelligentReach
 					continue;
 				}
 
-				if(version_compare(PHP_VERSION, '5.4.0', '>='))
-					$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
-				else
-					$value = htmlentities($value, ENT_COMPAT, "UTF-8");
-
+				$value = $this->encodeValue($value);
 				$value = $this->stripInvalidXMLCharacters($value);
 				$value = "<![CDATA[$value]]>";
 
@@ -262,6 +285,7 @@ class IntelligentReach
 				$feedData .=  '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
 				$feedData .=  '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
 				$feedData .=  '<ir_parent_image><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image>';
+				$feedData .=  '<ir_parent_description><![CDATA['.$this->stripInvalidXMLCharacters($this->encodeValue($parentProduct->getDescription())).']]></ir_parent_description>';
 			}
 			$gallery = $parentProduct->getMediaGallery();
 			if(count($gallery['images']) != 0)
@@ -422,10 +446,7 @@ class IntelligentReach
 				}
 				continue;
 			}
-			if(version_compare(PHP_VERSION, '5.4.0', '>='))
-				$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
-			else
-				$value = htmlentities($value, ENT_COMPAT, "UTF-8");
+			$value = $this->encodeValue($value);
 			$value = $this->stripInvalidXMLCharacters($value);
 
 			$value = "<![CDATA[$value]]>";
@@ -458,6 +479,14 @@ class IntelligentReach
 			return $number;
 		$dictionary = array( 0 => 'zero', 1 => 'one', 2 => 'two', 3 => 'three', 4 => 'four', 5 => 'five', 6 => 'six', 7 => 'seven', 8 => 'eight', 9 => 'nine');
 		return $dictionary[$number];
+	}
+	
+	public function encodeValue($value)
+	{
+		if(version_compare(PHP_VERSION, '5.4.0', '>='))
+			return htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+		else
+			return htmlentities($value, ENT_COMPAT, "UTF-8");
 	}
 
 	/**

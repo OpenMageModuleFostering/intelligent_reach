@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.37 Last updated by Kire on 18/05/2016 **/
+/** Version 1.0.38 Last updated by Kire on 16/06/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -15,7 +15,8 @@ class IntelligentReach
 	private $_splitby = 100;
 	private $_amountOfProductsPerPage = 100;
 	private $_lastPageNumber = 0;
-	private $_versionDisplay = "Version 1.0.37 <br />Last updated on 18/05/2016";
+	private $_versionNumber = "1.0.38";
+	private $_lastUpdated = "16/06/2016";
 
 	public function run() 
 	{
@@ -32,9 +33,9 @@ class IntelligentReach
 			{
 				header("Content-Type: text/xml; charset=UTF-8");
 				header("Cache-Control: no-cache, must-revalidate");
-				echo '<?xml version="1.0" encoding="utf-8"?>
-				<products version="1.0.37" type="web_pre">';
-					$this->runTheTask(isset($_GET["getall"]) ? 1 : $_GET["startingpage"], isset($_GET["getall"]) ? $this->_lastPageNumber : $_GET["endpage"]);
+				echo "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+					  <products version=\"$this->_versionNumber\" type=\"web_pre\">";
+						$this->runTheTask(isset($_GET["getall"]) ? 1 : $_GET["startingpage"], isset($_GET["getall"]) ? $this->_lastPageNumber : $_GET["endpage"]);
 				echo '</products>';
 			}
 			else
@@ -72,7 +73,7 @@ class IntelligentReach
 		echo "<p>If you want to skip this step in the future, you can manually enter the Store Id in the URL.<br />";
 		echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
 		echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
-		echo "<h5>".$this->_versionDisplay."</h5></div>";
+		echo "<h5>Version $this->_versionNumber <br />Last updated on $this->_lastUpdated</h5></div>";
 	}
 
 	public function getSections($sections)
@@ -80,6 +81,9 @@ class IntelligentReach
 		$convertNumberToWord = (isset($_GET["convertNumberToWord"])) ? "&convertNumberToWord=1" : "";
 		$stripInvalidChars = (isset($_GET["stripInvalidChars"])) ? "&stripInvalidChars=1" : "";
 		$includeAllParentFields = (isset($_GET["includeAllParentFields"])) ? "&includeAllParentFields=1" : "";
+		$includeDisabled = (isset($_GET["includeDisabled"])) ? "&includeDisabled=1" : "";
+		$includeNonSimpleProducts = (isset($_GET["includeNonSimpleProducts"])) ? "&includeNonSimpleProducts=1" : "";
+
 		$pages = $this->_lastPageNumber;
 		echo "<table cellspacing='2px;' border='1px;' cellpadding='8px;'>";
 		echo "<tr><th>Section</th><th>Pages</th></tr>";
@@ -89,7 +93,7 @@ class IntelligentReach
 			if ($startingPage < 1)
 				$startingPage = 1;
 
-			echo "<tr><td><a href='?storeid=" . $_GET["storeid"] . "&startingpage=" . $startingPage . "&endpage=" . $pages . "&splitby=".$this->_splitby ."&amountofproducts=".$this->_amountOfProductsPerPage.$convertNumberToWord.$stripInvalidChars.$includeAllParentFields."'>" . $i . "</a></td><td>" . $startingPage . "-" . $pages . "</td></tr>";
+			echo "<tr><td><a href='?storeid=" . $_GET["storeid"] . "&startingpage=" . $startingPage . "&endpage=" . $pages . "&splitby=".$this->_splitby."&amountofproducts=".$this->_amountOfProductsPerPage.$convertNumberToWord.$stripInvalidChars.$includeAllParentFields.$includeDisabled.$includeNonSimpleProducts."'>" . $i . "</a></td><td>" . $startingPage . "-" . $pages . "</td></tr>";
 			$pages = $startingPage - 1;
 		}
 		echo "</table>";
@@ -119,10 +123,12 @@ class IntelligentReach
 		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>convertNumberToWord=1</strong></p>";
 		echo "<p>To return all the parent product fields, use the <strong>'includeAllParentFields'</strong> parameter.</p>";
 		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>includeAllParentFields=1</strong></p>";
+		echo "<p>To include disabled products in the feed, use the <strong>'includeDisabled'</strong> parameter.</p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>includeDisabled=1</strong></p>";
+		echo "<p>To include products of all types in the feed, use the <strong>'includeNonSimpleProducts'</strong> parameter.</p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>includeNonSimpleProducts=1</strong></p>";
 		echo "</div>";
-		echo "<div style='float:left; padding-left:50px;'><h5>";
-		echo $this->_versionDisplay;
-		echo "</h5></div>";
+		echo "<div style='float:left; padding-left:50px;'><h5>Version $this->_versionNumber <br />Last updated on $this->_lastUpdated</h5></div>";
 	}
 
 	// Gets all the products in the catalog in the specific store view,
@@ -142,8 +148,25 @@ class IntelligentReach
 
 	public function getProductCollection()
 	{
-		return Mage::getModel('catalog/product')->getCollection()
+		$products = Mage::getModel('catalog/product')->getCollection()
 				->addStoreFilter($_GET["storeid"]);
+		return $this->addAdditionalAttributeFilters($products);
+	}
+	
+	public function addAdditionalAttributeFilters($products)
+	{
+		if(Mage::app()->getStore()->getConfig('catalog/frontend/flat_catalog_product'))
+			Mage::app()->getStore()->setConfig('catalog/frontend/flat_catalog_product', 0);
+		
+		if(isset($_GET["includeDisabled"]))
+			$products->addAttributeToFilter('status', array('gt' => 0));
+		else
+			$products->addAttributeToFilter('status', array('eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED));
+		
+		if(!isset($_GET["includeNonSimpleProducts"]))
+			$products->addAttributeToFilter('type_id', array('eq' => 'simple'));
+				
+		return $products;
 	}
 
 	// Run the task
@@ -178,6 +201,14 @@ class IntelligentReach
 			if(isset($parentIds[0]))
 				$parentProduct = Mage::getModel('catalog/product')->load($parentIds[0]);
 		}
+		
+		if((($product->getStatus() == Mage_Catalog_Model_Product_Status::STATUS_DISABLED) 
+			|| ((isset($parentProduct)) && ($parentProduct->getStatus() == Mage_Catalog_Model_Product_Status::STATUS_DISABLED)))
+				&& !isset($_GET['includeDisabled']))
+		{
+			return;
+		}
+		
 		echo'<product>';
 		foreach ($product->getData() as $key => $value) 
 		{
@@ -240,10 +271,7 @@ class IntelligentReach
 					continue;
 				}
 
-				if(version_compare(PHP_VERSION, '5.4.0', '>='))
-					$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
-				else
-					$value = htmlentities($value, ENT_COMPAT, "UTF-8");
+				$value = $this->encodeValue($value);
 				$value = $this->stripInvalidXMLCharacters($value);
 
 				$value = "<![CDATA[$value]]>";
@@ -265,6 +293,7 @@ class IntelligentReach
 				echo '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
 				echo '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
 				echo '<ir_parent_image><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image>';
+				echo '<ir_parent_description><![CDATA['.$this->stripInvalidXMLCharacters($this->encodeValue($parentProduct->getDescription())).']]></ir_parent_description>';
 			}
 			$gallery = $parentProduct->getMediaGallery();
 			if(count($gallery['images']) != 0)
@@ -381,10 +410,8 @@ class IntelligentReach
 				}
 				continue;
 			}
-			if(version_compare(PHP_VERSION, '5.4.0', '>='))
-				$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
-			else
-				$value = htmlentities($value, ENT_COMPAT, "UTF-8");
+			
+			$value = $this->encodeValue($value);
 			$value = $this->stripInvalidXMLCharacters($value);
 
 			$value = "<![CDATA[$value]]>";
@@ -410,6 +437,14 @@ class IntelligentReach
 			return $number;
 		$dictionary = array( 0 => 'zero', 1 => 'one', 2 => 'two', 3 => 'three', 4 => 'four', 5 => 'five', 6 => 'six', 7 => 'seven', 8 => 'eight', 9 => 'nine');
 		return $dictionary[$number];
+	}
+	
+	public function encodeValue($value)
+	{
+		if(version_compare(PHP_VERSION, '5.4.0', '>='))
+			return htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+		else
+			return htmlentities($value, ENT_COMPAT, "UTF-8");
 	}
 }
 

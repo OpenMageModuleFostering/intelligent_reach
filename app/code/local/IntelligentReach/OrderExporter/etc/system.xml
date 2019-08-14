@@ -3,8 +3,8 @@
    <sections>
 		<carriers>
 				<groups>
-						<intelligentreach_irshipping translate="label">
-								<label>Intelligent Reach Shipping</label>
+						<intelligentreach_orderexporter translate="label">
+								<label>Intelligent Reach Order Exporter</label>
 								<frontend_type>text</frontend_type>
 								<sort_order>13</sort_order>
 								<show_in_default>1</show_in_default>
@@ -29,7 +29,7 @@
 												<show_in_store>0</show_in_store>
 										</title>
 								</fields>
-						</intelligentreach_irshipping>
+						</intelligentreach_orderexporter>
 				</groups>
 		</carriers>
 	</sections>

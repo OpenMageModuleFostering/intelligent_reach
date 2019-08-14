@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.37 Last updated by Kire on 18/05/2016 **/
+/** Version 1.0.38 Last updated by Kire on 16/06/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,12 +13,16 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionDisplay = "Version 1.0.37 <br />Last updated on 18/05/2016";
+	private $_versionNumber = "1.0.38";
+	private $_lastUpdated = "16/06/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed_Quantity_And_Price";
 	private $_fileNameTemp = "";
 	private $_amountOfProductsPerPage = 1000;
+	
 	private $_gzipFile = true;
+	private $_includeDisabled = false;
+	private $_includeNonSimpleProducts = false;
 
 	public function run()
 	{
@@ -32,7 +36,7 @@ class IntelligentReach
 			$this->_fileNameTemp = tempnam("", $this->_fileName);
 			echo "Temp File created: ". $this->_fileNameTemp."<br />";
 
-			file_put_contents($this->_fileNameTemp, '<?xml version="1.0" encoding="utf-8"?><products version="1.0.37" type="cron">', LOCK_EX);
+			file_put_contents($this->_fileNameTemp, "<?xml version=\"1.0\" encoding=\"utf-8\"?><products version=\"$this->_versionNumber\" type=\"cron\">", LOCK_EX);
 			$this->runTheTask($storeId);      
 			file_put_contents($this->_fileNameTemp, '</products>', FILE_APPEND | LOCK_EX);
 
@@ -72,7 +76,7 @@ class IntelligentReach
 		echo "<p>If you want to skip this step in the future, you can manually enter the Store Id in the URL.<br />";
 		echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
 		echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
-		echo "<h5>".$this->_versionDisplay."</h5></div>";
+		echo "<h5>Version $this->_versionNumber <br />Last updated on $this->_lastUpdated</h5></div>";
 	}
 
 	// Gets all the products in the catalog in the specific store view,
@@ -97,11 +101,27 @@ class IntelligentReach
 
 	public function getProductCollection($storeId)
 	{
-		return Mage::getModel('catalog/product')
+		$products = Mage::getModel('catalog/product')
 				->getCollection()
 				->addStoreFilter($storeId)
-				->addAttributeToSelect('price', 'left')
-				->addAttributeToFilter('status', array('eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED));
+				->addAttributeToSelect('price', 'left');
+		return $this->addAdditionalAttributeFilters($products);
+	}
+	
+	public function addAdditionalAttributeFilters($products)
+	{
+		if(Mage::app()->getStore()->getConfig('catalog/frontend/flat_catalog_product'))
+			Mage::app()->getStore()->setConfig('catalog/frontend/flat_catalog_product', 0);
+		
+		if($this->_includeDisabled)
+			$products->addAttributeToFilter('status', array('gt' => 0));
+		else
+			$products->addAttributeToFilter('status', array('eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED));
+		
+		if(!$this->_includeNonSimpleProducts)
+			$products->addAttributeToFilter('type_id', array('eq' => 'simple'));
+				
+		return $products;
 	}
 
 	// Run the task

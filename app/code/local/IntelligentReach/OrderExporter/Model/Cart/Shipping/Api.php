@@ -3,15 +3,15 @@
   //Copyright © 2016 Intuitive Search Technologies Ltd.
   //Release under OSL license (http://opensource.org/licenses/osl-3.0).
   //
-class IntelligentReach_IRShipping_Model_Cart_Shipping_Api extends Mage_Checkout_Model_Cart_Shipping_Api
+class IntelligentReach_OrderExporter_Model_Cart_Shipping_Api extends Mage_Checkout_Model_Cart_Shipping_Api
 {
     /**
      * Set a Shipping Method for Shopping Cart with custom price and description.
      *
      * @param  $quoteId
      * @param  $shippingMethod
-		 * @param	 $price
-		 * @param  $description
+	 * @param	 $price
+	 * @param  $description
      * @param  $store
      * @return bool
      */
@@ -24,7 +24,7 @@ class IntelligentReach_IRShipping_Model_Cart_Shipping_Api extends Mage_Checkout_
             $this->_fault("shipping_address_is_not_set");
         }
 								
-				$this->writeShippingValuesToTempFile($price, $description);
+		$this->writeShippingValuesToTempFile($price, $description);
 								
         // force calling carrier collectRates() again
         $quote->getShippingAddress()->setCollectShippingRates(true);

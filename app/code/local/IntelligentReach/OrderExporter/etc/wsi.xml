@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions xmlns:typens="urn:{{var wsdl.name}}"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+             xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+             name="{{var wsdl.name}}"
+             targetNamespace="urn:{{var wsdl.name}}">
+    <wsdl:types>
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:{{var wsdl.name}}">
+			<xsd:complexType name="shoppingCartProductEntity">
+				<xsd:sequence>
+					<xsd:element name="product_id" type="xsd:string" minOccurs="0"/>
+					<xsd:element name="sku" type="xsd:string" minOccurs="0"/>
+					<xsd:element name="qty" type="xsd:double" minOccurs="0"/>
+					<xsd:element name="options" type="typens:associativeArray" minOccurs="0"/>
+					<xsd:element name="bundle_option" type="typens:associativeArray" minOccurs="0"/>
+					<xsd:element name="bundle_option_qty" type="typens:associativeArray" minOccurs="0"/>
+					<xsd:element name="links" type="typens:ArrayOfString" minOccurs="0"/>
+					<xsd:element name="price" type="xsd:double" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:complexType>			
+            <xsd:element name="shoppingCartShippingCustomIRMethodRequestParam">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" maxOccurs="1" name="sessionId" type="xsd:string" />
+                        <xsd:element minOccurs="1" maxOccurs="1" name="quoteId" type="xsd:int" />
+                        <xsd:element minOccurs="1" maxOccurs="1" name="shippingMethod" type="xsd:string" />
+						<xsd:element minOccurs="1" maxOccurs="1" name="price" type="xsd:double" />												
+						<xsd:element minOccurs="1" maxOccurs="1" name="description" type="xsd:string" />	
+                        <xsd:element minOccurs="0" maxOccurs="1" name="store" type="xsd:string" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="shoppingCartShippingCustomIRMethodResponseParam">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" maxOccurs="1" name="result" type="xsd:boolean" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+			<xsd:element name="shoppingCartProductAddWithPriceRequestParam">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" maxOccurs="1" name="sessionId" type="xsd:string" />
+                        <xsd:element minOccurs="1" maxOccurs="1" name="quoteId" type="xsd:int" />
+                        <xsd:element minOccurs="1" maxOccurs="1" name="productsData" type="typens:shoppingCartProductEntityArray" />
+                        <xsd:element minOccurs="0" maxOccurs="1" name="store" type="xsd:string" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="shoppingCartProductAddWithPriceResponseParam">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" maxOccurs="1" name="result" type="xsd:boolean" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+			<xsd:element name="shoppingCartProductIrApiVersionRequestParam">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" maxOccurs="1" name="sessionId" type="xsd:string" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="shoppingCartProductIrApiVersionResponseParam">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="1" maxOccurs="1" name="result" type="xsd:double" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+		</xsd:schema>
+    </wsdl:types>
+    <wsdl:message name="shoppingCartShippingCustomIRMethodRequest">
+        <wsdl:part name="parameters" element="typens:shoppingCartShippingCustomIRMethodRequestParam" />
+    </wsdl:message>
+    <wsdl:message name="shoppingCartShippingCustomIRMethodResponse">
+        <wsdl:part name="parameters" element="typens:shoppingCartShippingCustomIRMethodResponseParam" />
+    </wsdl:message>
+	<wsdl:message name="shoppingCartProductAddWithPriceRequest">
+        <wsdl:part name="parameters" element="typens:shoppingCartProductAddWithPriceRequestParam" />
+    </wsdl:message>
+    <wsdl:message name="shoppingCartProductAddWithPriceResponse">
+        <wsdl:part name="parameters" element="typens:shoppingCartProductAddWithPriceResponseParam" />
+    </wsdl:message>
+	<wsdl:message name="shoppingCartProductIrApiVersionRequest">
+        <wsdl:part name="parameters" element="typens:shoppingCartProductIrApiVersionRequestParam" />
+    </wsdl:message>
+    <wsdl:message name="shoppingCartProductIrApiVersionResponse">
+        <wsdl:part name="parameters" element="typens:shoppingCartProductIrApiVersionResponseParam" />
+    </wsdl:message>
+   
+    <wsdl:portType name="{{var wsdl.handler}}PortType">
+		<wsdl:operation name="shoppingCartShippingCustomIRMethod">
+            <wsdl:documentation>Set shipping method and custom values</wsdl:documentation>
+            <wsdl:input message="typens:shoppingCartShippingCustomIRMethodRequest"/>
+            <wsdl:output message="typens:shoppingCartShippingCustomIRMethodResponse"/>
+        </wsdl:operation>
+		<wsdl:operation name="shoppingCartProductAddWithPrice">
+            <wsdl:documentation>Add product(s) to shopping cart</wsdl:documentation>
+            <wsdl:input message="typens:shoppingCartProductAddWithPriceRequest"/>
+            <wsdl:output message="typens:shoppingCartProductAddWithPriceResponse"/>
+        </wsdl:operation>
+		<wsdl:operation name="shoppingCartProductIrApiVersion">
+            <wsdl:documentation>Get IR Api version number.</wsdl:documentation>
+            <wsdl:input message="typens:shoppingCartProductIrApiVersionRequest"/>
+            <wsdl:output message="typens:shoppingCartProductIrApiVersionResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="{{var wsdl.handler}}Binding" type="typens:{{var wsdl.handler}}PortType">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<wsdl:operation name="shoppingCartShippingCustomIRMethod">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+		<wsdl:operation name="shoppingCartProductAddWithPrice">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+		<wsdl:operation name="shoppingCartProductIrApiVersion">
+            <soap:operation soapAction=""/>
+            <wsdl:input>
+                <soap:body use="literal" />
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal" />
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+</wsdl:definitions>

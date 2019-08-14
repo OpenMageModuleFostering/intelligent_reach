@@ -1,17 +1,17 @@
 <?xml version="1.0"?>
 <config>
-		<modules>
+	<modules>
+		<IntelligentReach_Integration>
+			<version>1.0.38</version>
+		</IntelligentReach_Integration>
+	</modules>
+	<frontend>
+		<layout>
+			<updates>
 				<IntelligentReach_Integration>
-						<version>1.0.37</version>
+					<file>intelligentreach_integration.xml</file>
 				</IntelligentReach_Integration>
-		</modules>
-		<frontend>
-				<layout>
-						<updates>
-								<IntelligentReach_Integration>
-										<file>intelligentreach_integration.xml</file>
-								</IntelligentReach_Integration>
-						</updates>
-				</layout>
-		</frontend>
+			</updates>
+		</layout>
+	</frontend>
 </config>

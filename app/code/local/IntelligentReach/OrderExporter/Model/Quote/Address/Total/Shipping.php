@@ -3,7 +3,7 @@
   //Copyright © 2016 Intuitive Search Technologies Ltd.
   //Release under OSL license (http://opensource.org/licenses/osl-3.0).
   //
-class IntelligentReach_IRShipping_Model_Quote_Address_Total_Shipping extends Mage_Sales_Model_Quote_Address_Total_Shipping
+class IntelligentReach_OrderExporter_Model_Quote_Address_Total_Shipping extends Mage_Sales_Model_Quote_Address_Total_Shipping
 {
     /**
      * Collect totals information about shipping

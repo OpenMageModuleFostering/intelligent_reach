@@ -3,11 +3,11 @@
   //Copyright © 2016 Intuitive Search Technologies Ltd.
   //Release under OSL license (http://opensource.org/licenses/osl-3.0).
   //
-class IntelligentReach_IRShipping_Model_Carrier
+class IntelligentReach_OrderExporter_Model_Carrier
     extends Mage_Shipping_Model_Carrier_Abstract
     implements Mage_Shipping_Model_Carrier_Interface
 {
-    protected $_code = 'intelligentreach_irshipping';
+    protected $_code = 'intelligentreach_orderexporter';
 				
 		public function collectRates(Mage_Shipping_Model_Rate_Request $request)
 		{
