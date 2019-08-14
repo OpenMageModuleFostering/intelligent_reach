@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config>
+	<modules>
+		<IntelligentReach_EbayPayment>
+			<active>true</active>
+			<codePool>local</codePool>
+			<depends>
+				<Mage_Payment />
+			</depends>
+		</IntelligentReach_EbayPayment>
+	</modules>
+</config>

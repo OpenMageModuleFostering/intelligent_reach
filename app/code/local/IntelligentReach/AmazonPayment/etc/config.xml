@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<modules>
+	   <IntelligentReach_AmazonPayment>
+		  <version>0.1.0</version>
+	   </IntelligentReach_AmazonPayment>
+	</modules>
+	<global>
+		<blocks>
+			<amazonpayment>
+				<class>IntelligentReach_AmazonPayment_Block</class>
+			</amazonpayment>
+		</blocks>
+         <helpers>
+            <amazonpayment>  
+                <class>IntelligentReach_AmazonPayment_Helper</class>
+            </amazonpayment>
+        </helpers>
+		<models>
+			<amazonpayment>
+				<class>IntelligentReach_AmazonPayment_Model</class>
+			</amazonpayment>
+		</models>
+
+		<resources>
+			<amazonpayment_setup>
+				<setup>
+					<module>IntelligentReach_AmazonPayment</module>
+				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
+			</amazonpayment_setup>
+			<amazonpayment_write>
+				<connection>
+				  <use>core_write</use>
+				</connection>
+			</amazonpayment_write>
+			<amazonpayment_read>
+			   <connection>
+				<use>core_read</use>
+			  </connection>
+			</amazonpayment_read>
+		</resources>
+	</global>
+ 
+	<default>
+		<payment>
+			<amazonpayment>
+				<active>1</active>
+				<model>amazonpayment/pay</model>
+				<order_status>pending</order_status>
+				<title>Amazon Payment</title>
+			</amazonpayment>
+		 </payment>
+	</default>
+</config>

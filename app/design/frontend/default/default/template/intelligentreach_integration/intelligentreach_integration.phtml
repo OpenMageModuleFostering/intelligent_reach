@@ -1,0 +1,15 @@
+<?php
+  //Tracking code for the Intelligent Reach platform (http://www.intelligentreach.com).
+  //Copyright © 2014 Intuitive Search Technologies Ltd.
+  //Release under OSL license (http://opensource.org/licenses/osl-3.0).
+  //
+  //All Pages
+?>
+<?php
+$store_id = Mage::app()->getstore()->getid();
+$id = Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_id')->getValue(); 
+?>
+<script type="text/javascript" src="//www.ist-track.com/ContainerJavaScript.ashx?id=<?php echo $id; ?>"></script>
+<noscript> 
+  <img src="//www.ist-track.com/ProcessClickImage.ashx" alt="" width="1" height="1"/>
+</noscript>

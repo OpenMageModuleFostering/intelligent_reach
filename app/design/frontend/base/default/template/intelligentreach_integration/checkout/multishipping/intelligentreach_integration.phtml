@@ -1,0 +1,95 @@
+<?php
+  //Tracking code for the Intelligent Reach platform (http://www.intelligentreach.com).
+  //Copyright © 2014 Intuitive Search Technologies Ltd.
+  //Release under OSL license (http://opensource.org/licenses/osl-3.0).
+  //
+  //Multi-shipping Checkout Page
+?>
+<?php
+$store_id = Mage::app()->getstore()->getid();
+$istCompanyId = Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_id')->getValue();
+?>
+<?php 
+$orderIds = Mage::getSingleton('core/session')->getOrderIds();
+$purchasedItems = "";
+$purchasedItemQuantities = "";
+$purchasedItemPrices = "";
+?>
+<?php foreach($orderIds as $id): ?>
+<?php
+$orderNumber = $id;
+$sale = Mage::getModel('sales/order')->loadByIncrementId($orderNumber); $orderItems = $sale->getAllVisibleItems(); 
+?>
+<?php foreach($orderItems as $item): ?> 
+<?php 
+if(!in_array($item->getProductId(),$purchasedItemsArray))
+{
+$purchasedItemsArray[]= $item->getProductId();
+$purchasedItemPricesArray[] = number_format($item->getPrice(),2,'.','');
+}
+$purchasedItemQuantitiesArray[$item->getProductId()] += (int)$item->getQtyOrdered();
+?>
+<?php endforeach ?>
+<?php foreach(array_unique($orderItems) as $i): ?>
+<?php
+$purchasedItemsTotal = $purchasedItemsTotal + $sale->getGrandTotal();
+?>
+<?php endforeach ?>
+<?php endforeach ?>
+<?php
+// Building the string for the Purchased Item Id's value
+$lastItem = count($purchasedItemsArray);
+$itemIndex = 1;
+foreach($purchasedItemsArray as $itemId){
+ if($itemIndex == $lastItem){
+  $purchasedItems .= $itemId ;
+ }else{
+  $purchasedItems .= $itemId."|";
+ }
+ $itemIndex++;
+}
+
+// Building the string for the Purchased Item Quantities value
+$lastQuantity = count($purchasedItemQuantitiesArray);
+$quantityIndex = 1;
+foreach($purchasedItemQuantitiesArray as $itemQuantity){
+ if($quantityIndex == $lastQuantity){
+  $purchasedItemQuantities .= $itemQuantity;
+ }else{
+  $purchasedItemQuantities .= $itemQuantity."|";
+ }
+ $quantityIndex++;
+}
+
+// Building the string for the Purchased Item Prices value
+$lastPrice = count($purchasedItemPricesArray);
+$priceIndex = 1;
+foreach($purchasedItemPricesArray as $itemPrice){
+ if($priceIndex == $lastPrice){
+  $purchasedItemPrices .= $itemPrice ;
+ }else{
+  $purchasedItemPrices .= $itemPrice."|";
+ }
+ $priceIndex++;
+}
+?>
+<script type="text/javascript">
+  istCompanyId = "<?php echo $istCompanyId; ?>";
+  istOrderId = "<?php echo $orderNumber ?>";
+  istTotal = <?php echo $total = number_format($purchasedItemsTotal, 2, '.',''); ?>;
+  istItemCount = <?php echo $itemCount = (int)$sale->getTotalQtyOrdered();?>; 
+  istNewCustomer = <?php if($sale->getCustomerIsGuest()== 0){$newCustomer = "false";}else{$newCustomer = "true";} echo $newCustomer ;?>;
+  istPurchasedItems = "<?php echo $purchasedItems ?>";
+  istPurchasedItemQuantities = "<?php echo $purchasedItemQuantities ?>";
+  istPurchasedItemPrices = "<?php echo $purchasedItemPrices ?>";
+  istInstorePickup = false;
+  istVoucherCode = "<?php echo $voucherCode = $sale->getCouponCode();?>";
+  istLastAffiliateCode = "";
+  istUserDefinedFieldOne = "";
+  istUserDefinedFieldTwo = "";
+  istUserDefinedFieldThree = "";
+</script>
+<script type="text/javascript" src="//www.ist-track.com/ContainerPurchaseJavaScript.ashx?id=<?php echo $istCompanyId; ?>"></script>
+<noscript> 
+  <img src="//www.ist-track.com/ProcessPurchaseImage.ashx?companyId=<?php echo $istCompanyId; ?>&orderId=<?php echo $orderNumber ?>&total=<?php echo $total ?>&itemCount=<?php echo $itemCount ?>&newCustomer=<?php echo $newCustomer ?>&purchasedItems=<?php echo $purchasedItems ?>&purchasedItemQuantities=<?php echo $purchasedItemQuantities ?>&purchasedItemPrices=<?php echo $purchasedItemPrices ?>&instorePickup=false&voucherCode=<?php echo $voucherCode ?>&lastAffiliateCode=&userDefinedFieldOne=&userDefinedFieldTwo=&userDefinedFieldThree=" alt="" width="1" />
+</noscript>
