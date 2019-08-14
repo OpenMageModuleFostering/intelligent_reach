@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.30 Last updated by Kire on 07/10/2015 **/
+/** Version 1.0.31 Last updated by Kire on 10/11/2015 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -10,12 +10,12 @@ Mage::app();
 $ir = new IntelligentReach();
 $ir->run();
 
-class IntelligentReach 
+class IntelligentReach
 {
   private $_splitby = 100;
   private $_amountOfProductsPerPage = 100;
   private $_lastPageNumber = 0;
-  private $_versionDisplay = "Version 1.0.30 <br />Last updated on 07/10/2015";
+  private $_versionDisplay = "Version 1.0.31 <br />Last updated on 10/11/2015";
 
   public function run() 
   {
@@ -80,6 +80,7 @@ class IntelligentReach
 	{
 		$convertNumberToWord = (isset($_GET["convertNumberToWord"])) ? "&convertNumberToWord=1" : "";
 		$stripInvalidChars = (isset($_GET["stripInvalidChars"])) ? "&stripInvalidChars=1" : "";
+		$includeAllParentFields = (isset($_GET["includeAllParentFields"])) ? "&includeAllParentFields=1" : "";
 		$pages = $this->_lastPageNumber;
 		echo "<table cellspacing='2px;' border='1px;' cellpadding='8px;'>";
 		echo "<tr><th>Section</th><th>Pages</th></tr>";
@@ -89,7 +90,7 @@ class IntelligentReach
       if ($startingPage < 1)
         $startingPage = 1;
      
-      echo "<tr><td><a href='?storeid=" . $_GET["storeid"] . "&startingpage=" . $startingPage . "&endpage=" . $pages . "&splitby=".$this->_splitby ."&amountofproducts=".$this->_amountOfProductsPerPage.$convertNumberToWord.$stripInvalidChars."'>" . $i . "</a></td><td>" . $startingPage . "-" . $pages . "</td></tr>";
+      echo "<tr><td><a href='?storeid=" . $_GET["storeid"] . "&startingpage=" . $startingPage . "&endpage=" . $pages . "&splitby=".$this->_splitby ."&amountofproducts=".$this->_amountOfProductsPerPage.$convertNumberToWord.$stripInvalidChars.$includeAllParentFields."'>" . $i . "</a></td><td>" . $startingPage . "-" . $pages . "</td></tr>";
       $pages = $startingPage - 1;
     }
     echo "</table>";
@@ -117,6 +118,8 @@ class IntelligentReach
 		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>stripInvalidChars=1</strong></p>";
 		echo "<p>To enable the converting of the first character in the XML tag from a number to a word, use the <strong>'convertNumberToWord'</strong> parameter.</p>";
 		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>convertNumberToWord=1</strong></p>";
+		echo "<p>To return all the parent product fields, use the <strong>'includeAllParentFields'</strong> parameter.</p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>includeAllParentFields=1</strong></p>";
     echo "</div>";
 		echo "<div style='float:left; padding-left:50px;'><h5>";
 		echo $this->_versionDisplay;
@@ -133,7 +136,6 @@ class IntelligentReach
     $products = Mage::getModel('catalog/product')->getCollection()->addStoreFilter($_GET["storeid"]);
 		$products->setPage($page, $this->_amountOfProductsPerPage);
     $products->addAttributeToSelect('*');
-    $products->addAttributeToFilter('status', array('eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED));
     return $products;
   }
 
@@ -161,8 +163,7 @@ class IntelligentReach
     $baseUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
 
     $product = Mage::getModel('catalog/product')->load($args['row']['entity_id']);
-    echo'<product>';
-    if ($product->getTypeId() == 'simple') 
+		if ($product->getTypeId() == 'simple') 
     {
       $parentIds = Mage::getModel('catalog/product_type_grouped')->getParentIdsByChild($product->getId());
       if (!$parentIds)
@@ -170,7 +171,8 @@ class IntelligentReach
       if (isset($parentIds[0]))
         $parentProduct = Mage::getModel('catalog/product')->load($parentIds[0]);
     }
-    foreach ($product->getdata() as $key => $value) 
+    echo'<product>';
+    foreach ($product->getData() as $key => $value) 
     {
       if ($key !== 'stock_item') 
       {
@@ -201,6 +203,11 @@ class IntelligentReach
             echo " <image_".($i + 1)."><![CDATA[". $baseUrl . "media/catalog/product" . $value['images'][$i]['file']."]]></image_".($i + 1).">";
           continue;
         }
+				if($key == 'status')
+				{
+					if((isset($parentProduct)) && ($parentProduct->getStatus() == Mage_Catalog_Model_Product_Status::STATUS_DISABLED))
+						$value = "Disabled";
+				}
         
 				$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
 				$value = $this->stripInvalidXMLCharacters($value);
@@ -248,7 +255,7 @@ class IntelligentReach
 		
 		/** New longest Category Path code **/
 		$validCategoryPaths = array();
-    $intelligent_reach_category_exclusions = Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_category_exclusions')->getValue();
+    $intelligent_reach_category_exclusions = Mage::getModel('core/variable')->setStoreId($_GET["storeid"])->loadByCode('intelligent_reach_category_exclusions')->getValue();
 		foreach($categories as $cat)
 		{
 			$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($cat);
@@ -283,10 +290,15 @@ class IntelligentReach
 		
 		if(isset($parentProduct))
 		{
-			echo '<ir_parent_entity_id><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getId()).']]></ir_parent_entity_id>';
-			echo '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
-			echo '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
-			echo '<ir_parent_image_url><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image_url>';
+		  if(isset($_GET["includeAllParentFields"]))
+					$this->printAllParentFields($parentProduct);
+			else
+			{
+				echo '<ir_parent_entity_id><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getId()).']]></ir_parent_entity_id>';
+				echo '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
+				echo '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
+				echo '<ir_parent_image><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image>';
+			}
 			$gallery = $parentProduct->getMediaGallery();
 			if(count($gallery['images']) != 0)
 			{
@@ -297,10 +309,40 @@ class IntelligentReach
 
     echo '</product>';
     if (is_object($parentIds))
-      $parentIds->clearInstance();
+      unset($parentIds);
     
-    $product->clearInstance();
+    unset($product);
   }
+	
+	public function printAllParentFields($parentProduct)
+	{
+	  $baseUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
+		foreach ($parentProduct->getData() as $key => $value) 
+    {
+			if ($parentProduct->getResource()->getAttribute($key) != null)
+				$value = $parentProduct->getResource()->getAttribute($key)->getFrontend()->getValue($parentProduct);
+
+			if (($key == 'url_path') || ($key == 'url_key'))
+				$value = trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()));      
+			
+			if ($key == 'image')
+				$value = $baseUrl . "media/catalog/product" . $value;
+
+			if ($key == 'thumbnail')
+				$value = $baseUrl . "media/catalog/product" . $value;
+			
+			$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+			$value = $this->stripInvalidXMLCharacters($value);
+
+			$value = "<![CDATA[$value]]>";
+
+			$key = str_replace('"', '', $key);
+			if(is_numeric($key[0]) && isset($_GET["convertNumberToWord"]))
+				$key = $this->convertNumberToWord($key[0]).substr($key, 1);
+			echo '<ir_parent_' . $key . '>' . $value . '</ir_parent_' . $key . '>';
+		
+		}
+	}
 
   public function stripInvalidXMLCharacters($value) 
   {
