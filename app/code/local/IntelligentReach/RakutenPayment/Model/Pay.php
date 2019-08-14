@@ -14,6 +14,6 @@ class IntelligentReach_RakutenPayment_Model_Pay extends Mage_Payment_Model_Metho
      */
 	protected $_canUseInternal = true;
 	protected $_canUseCheckout = false; 
-
+	protected $_canUseForMultishipping = false;
 }
 ?>

@@ -7,15 +7,14 @@ class IntelligentReach_EbayPayment_Model_Pay extends Mage_Payment_Model_Method_A
 {
 
     protected $_code  = 'ebaypayment';
-    //protected $_formBlockType = 'payment/form_checkmo';
-    //protected $_infoBlockType = 'payment/info_checkmo';
 
 	 /**
      * Payment Method features
      * @var bool
      */
 	protected $_canUseInternal = true;
-	protected $_canUseCheckout = false; 
+	protected $_canUseCheckout = false;
+	protected $_canUseForMultishipping = false;
 
 }
 ?>

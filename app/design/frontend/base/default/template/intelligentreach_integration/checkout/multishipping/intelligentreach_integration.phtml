@@ -10,29 +10,40 @@ $store_id = Mage::app()->getstore()->getid();
 $istCompanyId = Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_id')->getValue();
 ?>
 <?php 
-$orderIds = Mage::getSingleton('core/session')->getOrderIds();
+$orderIds = array();
+$last_quote_id = Mage::getSingleton('checkout/session')->getLastQuoteId();
+$orderCollection = Mage::getModel('sales/order')->getCollection()
+    ->addFieldToFilter('customer_id', array('eq' => array(Mage::getSingleton('customer/session')->getCustomer()->getId())));
+$orderCollection = $orderCollection->addFilter('quote_id', $last_quote_id);
+foreach($orderCollection as $order_row){
+    $orderIds[] = $order_row->getId();
+} 
+
 $purchasedItems = "";
 $purchasedItemQuantities = "";
 $purchasedItemPrices = "";
+$purchasedItemsArray = array();
+$purchasedItemQuantitiesArray = array();
+$purchasedItemPricesArray = array();
+$purchasedItemsTotal = 0;
 ?>
 <?php foreach($orderIds as $id): ?>
 <?php
-$orderNumber = $id;
-$sale = Mage::getModel('sales/order')->loadByIncrementId($orderNumber); $orderItems = $sale->getAllVisibleItems(); 
+$sale = Mage::getModel('sales/order')->load($id); 
+$purchasedItemsTotal = $purchasedItemsTotal + $sale->getGrandTotal();
+$orderNumber = $sale->getIncrementId();
+$orderItems = $sale->getAllVisibleItems(); 
 ?>
 <?php foreach($orderItems as $item): ?> 
 <?php 
-if(!in_array($item->getProductId(),$purchasedItemsArray))
-{
-$purchasedItemsArray[]= $item->getProductId();
-$purchasedItemPricesArray[] = number_format($item->getPrice(),2,'.','');
-}
-$purchasedItemQuantitiesArray[$item->getProductId()] += (int)$item->getQtyOrdered();
-?>
-<?php endforeach ?>
-<?php foreach(array_unique($orderItems) as $i): ?>
-<?php
-$purchasedItemsTotal = $purchasedItemsTotal + $sale->getGrandTotal();
+	if(!in_array($item->getProductId(), $purchasedItemsArray))
+	{
+		$purchasedItemsArray[]= $item->getProductId();
+		$purchasedItemPricesArray[] = number_format($item->getPrice(),2,'.','');
+		$purchasedItemQuantitiesArray[$item->getProductId()] = (int)$item->getQtyOrdered();
+	}
+	else
+		$purchasedItemQuantitiesArray[$item->getProductId()] += (int)$item->getQtyOrdered();
 ?>
 <?php endforeach ?>
 <?php endforeach ?>

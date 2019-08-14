@@ -14,6 +14,6 @@ class IntelligentReach_PlayPayment_Model_Pay extends Mage_Payment_Model_Method_A
      */
 	protected $_canUseInternal = true;
 	protected $_canUseCheckout = false; 
-
+	protected $_canUseForMultishipping = false;
 }
 ?>

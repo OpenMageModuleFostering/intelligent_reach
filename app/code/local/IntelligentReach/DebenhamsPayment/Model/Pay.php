@@ -14,6 +14,6 @@ class IntelligentReach_DebenhamsPayment_Model_Pay extends Mage_Payment_Model_Met
      */
 	protected $_canUseInternal = true;
 	protected $_canUseCheckout = false; 
-
+	protected $_canUseForMultishipping = false;
 }
 ?>

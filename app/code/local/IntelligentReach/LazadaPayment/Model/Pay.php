@@ -14,6 +14,6 @@ class IntelligentReach_LazadaPayment_Model_Pay extends Mage_Payment_Model_Method
      */
 	protected $_canUseInternal = true;
 	protected $_canUseCheckout = false; 
-
+	protected $_canUseForMultishipping = false;
 }
 ?>

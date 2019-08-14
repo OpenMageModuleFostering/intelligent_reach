@@ -7,8 +7,6 @@ class IntelligentReach_AmazonPayment_Model_Pay extends Mage_Payment_Model_Method
 {
 
     protected $_code  = 'amazonpayment';
-    //protected $_formBlockType = 'payment/form_checkmo';
-    //protected $_infoBlockType = 'payment/info_checkmo';
 
 	 /**
      * Payment Method features
@@ -16,6 +14,6 @@ class IntelligentReach_AmazonPayment_Model_Pay extends Mage_Payment_Model_Method
      */
 	protected $_canUseInternal = true;
 	protected $_canUseCheckout = false; 
-
+	protected $_canUseForMultishipping = false;
 }
 ?>
