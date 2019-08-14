@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.28 Last updated by Kire on 24/09/2015 **/
+/** Version 1.0.29 Last updated by Kire on 06/10/2015 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -14,9 +14,9 @@ $ir->run();
 class IntelligentReach 
 {
   private $_splitby = 100;
-	private	$_amountOfProductsPerPage = 100;
+  private $_amountOfProductsPerPage = 100;
   private $_lastPageNumber = 0;
-  private $_versionDisplay = "Version 1.0.28 <br />Last updated on 24/09/2015";
+  private $_versionDisplay = "Version 1.0.29 <br />Last updated on 06/10/2015";
 
   public function run() 
   {
@@ -237,6 +237,7 @@ class IntelligentReach
 	
 	/** New longest Category Path code **/
 	$validCategoryPaths = array();
+	$intelligent_reach_category_exclusions = Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_category_exclusions')->getValue();
 	foreach($categories as $cat)
 	{
 		$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($cat);
@@ -250,8 +251,13 @@ class IntelligentReach
 		}
 		if($catpath != "")
 		{
-		  if(preg_match('/('.Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_category_exclusions')->getValue().')/i', $catpath) != true)
-			array_push($validCategoryPaths, $catpath);
+			if($intelligent_reach_category_exclusions != "")
+			{
+			  if(preg_match('/('.$intelligent_reach_category_exclusions.')/i', $catpath) != true)
+				array_push($validCategoryPaths, $catpath);
+			}
+			else
+			 array_push($validCategoryPaths, $catpath);
 		}
 	}
 	if(count($validCategoryPaths) != 0)
