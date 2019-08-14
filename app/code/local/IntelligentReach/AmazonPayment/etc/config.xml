@@ -2,7 +2,7 @@
 <config>
 	<modules>
 	   <IntelligentReach_AmazonPayment>
-		  <version>0.1.0</version>
+		  <version>1.0.28</version>
 	   </IntelligentReach_AmazonPayment>
 	</modules>
 	<global>

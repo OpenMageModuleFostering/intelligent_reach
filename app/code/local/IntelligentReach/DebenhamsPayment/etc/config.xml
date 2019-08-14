@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<modules>
+	   <IntelligentReach_DebenhamsPayment>
+		  <version>1.0.28</version>
+	   </IntelligentReach_DebenhamsPayment>
+	</modules>
+	<global>
+    <blocks>
+        <debenhamspayment>
+            <class>IntelligentReach_DebenhamsPayment_Block</class>
+        </debenhamspayment>
+    </blocks>
+         <helpers>
+            <debenhamspayment>  
+                <class>IntelligentReach_DebenhamsPayment_Helper</class>
+            </debenhamspayment>
+        </helpers>
+		<models>
+			<debenhamspayment>
+				<class>IntelligentReach_DebenhamsPayment_Model</class>
+			</debenhamspayment>
+		</models>
+ 
+		<resources>
+			<debenhamspayment_setup>
+				<setup>
+					<module>IntelligentReach_DebenhamsPayment</module>
+				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
+			</debenhamspayment_setup>
+			<debenhamspayment_write>
+				<connection>
+				  <use>core_write</use>
+				</connection>
+			</debenhamspayment_write>
+			<debenhamspayment_read>
+			   <connection>
+				<use>core_read</use>
+			  </connection>
+			</debenhamspayment_read>
+		</resources>
+	</global>
+ 
+	<default>
+		<payment>
+			<debenhamspayment>
+				<active>1</active>
+				<model>debenhamspayment/pay</model>
+				<order_status>pending</order_status>
+				<title>Debenhams Payment</title>
+			</debenhamspayment>
+		 </payment>
+	</default>
+</config>

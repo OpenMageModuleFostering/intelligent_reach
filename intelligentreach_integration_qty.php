@@ -16,7 +16,7 @@ class IntelligentReach
   private $_splitby = 100;
 	private	$_amountOfProductsPerPage = 100;
   private $_lastPageNumber = 0;
-  private $_versionDisplay = "Version 1.0.28 <br />Last updated on 24/09/2015";
+	private $_versionDisplay = "Version 1.0.28 <br />Last updated on 24/09/2015";
 
   public function run() 
   {
@@ -24,7 +24,7 @@ class IntelligentReach
     $this->_lastPageNumber = $prodcoll->getLastPageNumber();
     if (isset($_GET["splitby"]))
       $this->_splitby = $_GET["splitby"];
-    if (isset($_GET["amountofproducts"]))
+		if (isset($_GET["amountofproducts"]))
       $this->_amountOfProductsPerPage = $_GET["amountofproducts"];
 
     // If a store id was provided then print the products to the output.
@@ -33,7 +33,7 @@ class IntelligentReach
       if ((isset($_GET["startingpage"]) && isset($_GET["endpage"])) || isset($_GET["getall"])) 
       {
         header("Content-Type: text/xml; charset=UTF-8");
-        header("Cache-Control: no-cache, must-revalidate");
+				header("Cache-Control: no-cache, must-revalidate");
         echo '<?xml version="1.0" encoding="utf-8"?>
             <products>';
         $this->runTheTask(isset($_GET["getall"]) ? 1 : $_GET["startingpage"], isset($_GET["getall"]) ? $this->_lastPageNumber : $_GET["endpage"]);
@@ -55,7 +55,7 @@ class IntelligentReach
       return false;
   }
 
-  // Gets all the stores on all websites,
+  // Gets all the stores on the current website,
   // returns a table containing Store Ids and Store Names.
   public function getStores() 
   {
@@ -74,7 +74,7 @@ class IntelligentReach
     echo "<p>If you want to skip this step in the future, you can manually enter the Store Id in the URL.<br />";
     echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
     echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
-    echo "<h5>".$this->_versionDisplay."</h5></div>";
+		echo "<h5>".$this->_versionDisplay."</h5></div>";
   }
 
   public function getSections($sections) 
@@ -97,11 +97,11 @@ class IntelligentReach
   public function printSections() 
   {
     $sections = ceil($this->_lastPageNumber / $this->_splitby);
-    echo "<h2>Please select a section to return the products.</h2>";
-    echo "<div class='sections' style='float:left; padding-left:50px;'>";
+    echo "<h2>Please select a section to return the product quantities.</h2>";
+    echo "<div class='sections' style='float:left;'>";
     $this->getSections($sections);
     echo "</div>";
-    echo "<div class='instructions' style='float:left; padding-left:50px;'>";
+    echo "<div class='instructions' style='float:left; padding-left:100px;'>";
     echo "<h3>Instructions</h3>";
     echo "<p>The parameter <strong>'splitby'</strong> in the URL splits pages into sections, each page contains (unless specified otherwise) the default amount of 100 products.</p>";
     echo "<p>So setting <strong>'splitby'</strong> to equal 100 will bring back 1,000 products per page and 10,000 products per section, if there are 40,000 products in the store then this will return 4 sections. </p>";
@@ -109,7 +109,7 @@ class IntelligentReach
     echo "<p>You can also set the value of the number of products per page that is returned, by setting the parameter <strong>'amountofproducts'</strong> in the URL</p>";
     echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&splitby=100&<strong>amountofproducts=100</strong></p>";
     echo "<p><strong>NB:</strong> The default value for <strong>'splitby'</strong> is 100 and for <strong>'amountofproducts'</strong> is 100.</p>";
-    echo "<p>You can also retrieve all products but using the 'getall' parameter</p>";
+    echo "<p>You can also retrieve all product quantities but using the 'getall' parameter</p>";
     echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>getall=1</strong></p>";
     echo "</div>";
 		echo "<div style='float:left; padding-left:50px;'><h5>";
@@ -149,134 +149,18 @@ class IntelligentReach
       flush();
     }
   }
-    
-  public function printProducts($args) 
+
+  public function printProducts($args)
   {
-    $baseUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
-
-    $product = Mage::getModel('catalog/product')->load($args['row']['entity_id']);
-    echo'<product>';
-    if ($product->getTypeId() == 'simple') 
-    {
-      $parentIds = Mage::getModel('catalog/product_type_grouped')->getParentIdsByChild($product->getId());
-      if (!$parentIds)
-        $parentIds = Mage::getModel('catalog/product_type_configurable')->getParentIdsByChild($product->getId());
-      if (isset($parentIds[0]))
-        $parentProduct = Mage::getModel('catalog/product')->load($parentIds[0]);
-    }
-    foreach ($product->getdata() as $key => $value) 
-    {
-      if ($key !== 'stock_item') 
-      {
-        if ($product->getResource()->getAttribute($key) != null)
-          $value = $product->getResource()->getAttribute($key)->getFrontend()->getValue($product);
-
-        if (($key == 'url_path') || ($key == 'url_key'))
-          $value = trim(str_replace('/intelligentreach_integration.php', '', $product->getProductUrl()));      
-        
-        if ($key == 'image')
-          $value = $baseUrl . "media/catalog/product" . $value;
-
-        if ($key == 'thumbnail')
-          $value = $baseUrl . "media/catalog/product" . $value;
-          
-        if (($value == '') && (isset($parentProduct))) 
-        {
-          $attr = $parentProduct->getResource()->getAttribute($key);
-          if (!is_object($attr))
-            continue;
-          $value = $attr->getFrontend()->getValue($parentProduct);
-        }
-        
-        // Print out all media gallery images.
-        if($key == 'media_gallery')
-        {
-          for($i = 0; $i < count($value['images']); $i++)
-            echo " <image_".($i + 1)."><![CDATA[". $baseUrl . "media/catalog/product" . $value['images'][$i]['file']."]]></image_".($i + 1).">";
-          continue;
-        }
- 
-		$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
-        $value = "<![CDATA[$value]]>";
-
-        $key = str_replace('"', '', $key);
-
-        echo '<' . $key . '>' . $value . '</' . $key . '>';
-      }
-    }
-
-    $categories = $product->getCategoryIds();
-	$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($categories[0]);
-		
-	/** Old Category Path code: will be deleted in the future. **/
-    $cat_parentCategories = array_reverse($category->getParentCategories(), true);
-    $output = "";
-
-    foreach ($cat_parentCategories as $parent) 
-    {     
-       $output .= $parent->getName();
-       if ($parent !== end($cat_parentCategories))
-        $output .= ' > ';
-    }
-    if($output != "")
-    echo '<category_path><![CDATA['.$output.']]></category_path>';
-	 /** End of Old Category path code **/
-	
-	/** New Category Path code **/
-	$pathIds =  array_reverse(explode(",", $category->getPathInStore()), true);
-	$path = "";
-	foreach($pathIds as $pathId)
-	{
-		$path .= Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($pathId)->getName();
-		if($pathId != end($pathIds))
-			$path .= ' > ';
-	}
-	if($path != "")
-		echo '<ir_category_path><![CDATA['.$path.']]></ir_category_path>';
-	/** End of New Category Path code **/
-	
-	/** New longest Category Path code **/
-	$validCategoryPaths = array();
-	foreach($categories as $cat)
-	{
-		$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($cat);
-	   	$pathIds =  array_reverse(explode(",", $category->getPathInStore()), true);
-		$catpath = "";
-		foreach($pathIds as $pathId)
-		{
-			$catpath .= Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($pathId)->getName();
-			if($pathId != end($pathIds))
-				$catpath .= ' > ';
-		}
-		if($catpath != "")
-		{
-		  if(preg_match('/('.Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_category_exclusions')->getValue().')/i', $catpath) != true)
-			array_push($validCategoryPaths, $catpath);
-		}
-	}
-	if(count($validCategoryPaths) != 0)
-	{	
-		if(count($validCategoryPaths) > 1)
-			usort($validCategoryPaths, function ($a, $b) { return (strlen($a) < strlen($b)); });  
-		echo "<ir_longest_category_path><![CDATA[".$validCategoryPaths[0]."]]></ir_longest_category_path>";
-	}
-	else if($path != "")
-		echo '<ir_longest_category_path><![CDATA['.$path.']]></ir_longest_category_path>';
-	/** End of New longest Category Path code **/
-	
-	if(isset($parentProduct))
-	{
-		 echo '<ir_parent_entity_id><![CDATA['.$parentProduct->getId().']]></ir_parent_entity_id>';
-		 echo '<ir_parent_sku><![CDATA['.$parentProduct->getSku().']]></ir_parent_sku>';
-		 echo '<ir_parent_url><![CDATA[' . trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl())) . ']]></ir_parent_url>'; 
-		 echo '<ir_parent_image_url><![CDATA['. $baseUrl . 'media/catalog/product' .$parentProduct->getImage().']]></ir_parent_image_url>';
-	}
-
-    echo '</product>';
-    if (is_object($parentIds))
-      $parentIds->clearInstance();
+    $product =  Mage::getModel('catalog/product')->load($args['row']['entity_id']);
     
+    $inventoryProduct = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
+    echo'<product>';
+    echo '<entity_id><![CDATA['.$inventoryProduct->getProductId().']]></entity_id>';
+    echo '<qty><![CDATA['.(int)$inventoryProduct->getQty().']]></qty>';
+    echo '<is_in_stock><![CDATA['.(int)$inventoryProduct->getIsInStock().']]></is_in_stock>';            
+    echo '</product>';
+        
     $product->clearInstance();
   }
 }
-

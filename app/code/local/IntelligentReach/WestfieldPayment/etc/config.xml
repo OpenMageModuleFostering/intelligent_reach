@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<modules>
+	   <IntelligentReach_WestfieldPayment>
+		  <version>1.0.28</version>
+	   </IntelligentReach_WestfieldPayment>
+	</modules>
+	<global>
+    <blocks>
+        <westfieldpayment>
+            <class>IntelligentReach_WestfieldPayment_Block</class>
+        </westfieldpayment>
+    </blocks>
+         <helpers>
+            <westfieldpayment>  
+                <class>IntelligentReach_WestfieldPayment_Helper</class>
+            </westfieldpayment>
+        </helpers>
+		<models>
+			<westfieldpayment>
+				<class>IntelligentReach_WestfieldPayment_Model</class>
+			</westfieldpayment>
+		</models>
+ 
+		<resources>
+			<westfieldpayment_setup>
+				<setup>
+					<module>IntelligentReach_WestfieldPayment</module>
+				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
+			</westfieldpayment_setup>
+			<westfieldpayment_write>
+				<connection>
+				  <use>core_write</use>
+				</connection>
+			</westfieldpayment_write>
+			<westfieldpayment_read>
+			   <connection>
+				<use>core_read</use>
+			  </connection>
+			</westfieldpayment_read>
+		</resources>
+	</global>
+ 
+	<default>
+		<payment>
+			<westfieldpayment>
+				<active>1</active>
+				<model>westfieldpayment/pay</model>
+				<order_status>pending</order_status>
+				<title>Westfield Payment</title>
+			</westfieldpayment>
+		 </payment>
+	</default>
+</config>

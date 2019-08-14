@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<modules>
+	   <IntelligentReach_TradeMePayment>
+		  <version>1.0.28</version>
+	   </IntelligentReach_TradeMePayment>
+	</modules>
+	<global>
+    <blocks>
+        <trademepayment>
+            <class>IntelligentReach_TradeMePayment_Block</class>
+        </trademepayment>
+    </blocks>
+         <helpers>
+            <trademepayment>  
+                <class>IntelligentReach_TradeMePayment_Helper</class>
+            </trademepayment>
+        </helpers>
+		<models>
+			<trademepayment>
+				<class>IntelligentReach_TradeMePayment_Model</class>
+			</trademepayment>
+		</models>
+ 
+		<resources>
+			<trademepayment_setup>
+				<setup>
+					<module>IntelligentReach_TradeMePayment</module>
+				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
+			</trademepayment_setup>
+			<trademepayment_write>
+				<connection>
+				  <use>core_write</use>
+				</connection>
+			</trademepayment_write>
+			<trademepayment_read>
+			   <connection>
+				<use>core_read</use>
+			  </connection>
+			</trademepayment_read>
+		</resources>
+	</global>
+ 
+	<default>
+		<payment>
+			<trademepayment>
+				<active>1</active>
+				<model>trademepayment/pay</model>
+				<order_status>pending</order_status>
+				<title>TradeMe Payment</title>
+			</trademepayment>
+		 </payment>
+	</default>
+</config>

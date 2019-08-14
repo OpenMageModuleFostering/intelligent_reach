@@ -2,12 +2,10 @@
 <config>
 	<modules>
 	   <IntelligentReach_EbayPayment>
-<!-- declare module's version information for database updates -->
-		  <version>0.1.0</version>
+		  <version>1.0.28</version>
 	   </IntelligentReach_EbayPayment>
 	</modules>
 	<global>
-<!-- IMPORTANT: if you use your own namespace (i.e. CompanyName) you also have to declare blocks group for new module. See topic: http://www.magentocommerce.com/boards/viewthread/22416/#t102732 -->
     <blocks>
         <ebaypayment>
             <class>IntelligentReach_EbayPayment_Block</class>
@@ -18,27 +16,18 @@
                 <class>IntelligentReach_EbayPayment_Helper</class>
             </ebaypayment>
         </helpers>
-<!-- declare model group for new module -->
 		<models>
-<!-- model group alias to be used in Mage::getModel('ebaypayment/...') -->
 			<ebaypayment>
-<!-- base class name for the model group -->
 				<class>IntelligentReach_EbayPayment_Model</class>
 			</ebaypayment>
 		</models>
  
-<!-- declare resource setup for new module -->
 		<resources>
-<!-- resource identifier -->
 			<ebaypayment_setup>
-<!-- specify that this resource is a setup resource and used for upgrades -->
 				<setup>
-<!-- which module to look for install/upgrade files in -->
 					<module>IntelligentReach_EbayPayment</module>
 				</setup>
-<!-- specify database connection for this resource -->
 				<connection>
-<!-- do not create new connection, use predefined core setup connection -->
 					<use>core_setup</use>
 				</connection>
 			</ebaypayment_setup>
@@ -55,19 +44,12 @@
 		</resources>
 	</global>
  
-<!-- declare default configuration values for this module -->
 	<default>
-<!-- 'ebaypayment' configuration section (tab) -->
 		<payment>
-<!-- 'marketplacepayment' configuration group (fieldset) -->
 			<ebaypayment>
-<!-- by default this ebaypayment method is inactive -->
 				<active>1</active>
-<!-- model to handle logic for this ebaypayment method -->
 				<model>ebaypayment/pay</model>
-<!-- order status for new orders paid by this ebaypayment method -->
 				<order_status>pending</order_status>
-<!-- default title for ebaypayment checkout page and order view page -->
 				<title>eBay Payment</title>
 			</ebaypayment>
 		 </payment>

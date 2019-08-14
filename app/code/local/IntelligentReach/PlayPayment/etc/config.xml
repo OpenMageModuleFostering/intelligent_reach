@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<modules>
+	   <IntelligentReach_PlayPayment>
+		  <version>1.0.28</version>
+	   </IntelligentReach_PlayPayment>
+	</modules>
+	<global>
+    <blocks>
+        <playpayment>
+            <class>IntelligentReach_PlayPayment_Block</class>
+        </playpayment>
+    </blocks>
+         <helpers>
+            <playpayment>  
+                <class>IntelligentReach_PlayPayment_Helper</class>
+            </playpayment>
+        </helpers>
+		<models>
+			<playpayment>
+				<class>IntelligentReach_PlayPayment_Model</class>
+			</playpayment>
+		</models>
+ 
+		<resources>
+			<playpayment_setup>
+				<setup>
+					<module>IntelligentReach_PlayPayment</module>
+				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
+			</playpayment_setup>
+			<playpayment_write>
+				<connection>
+				  <use>core_write</use>
+				</connection>
+			</playpayment_write>
+			<playpayment_read>
+			   <connection>
+				<use>core_read</use>
+			  </connection>
+			</playpayment_read>
+		</resources>
+	</global>
+ 
+	<default>
+		<payment>
+			<playpayment>
+				<active>1</active>
+				<model>playpayment/pay</model>
+				<order_status>pending</order_status>
+				<title>Play Payment</title>
+			</playpayment>
+		 </payment>
+	</default>
+</config>

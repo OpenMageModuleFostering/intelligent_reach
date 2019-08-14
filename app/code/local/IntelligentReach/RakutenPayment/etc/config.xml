@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<modules>
+	   <IntelligentReach_RakutenPayment>
+		  <version>1.0.28</version>
+	   </IntelligentReach_RakutenPayment>
+	</modules>
+	<global>
+    <blocks>
+        <rakutenpayment>
+            <class>IntelligentReach_RakutenPayment_Block</class>
+        </rakutenpayment>
+    </blocks>
+         <helpers>
+            <rakutenpayment>  
+                <class>IntelligentReach_RakutenPayment_Helper</class>
+            </rakutenpayment>
+        </helpers>
+		<models>
+			<rakutenpayment>
+				<class>IntelligentReach_RakutenPayment_Model</class>
+			</rakutenpayment>
+		</models>
+ 
+		<resources>
+			<rakutenpayment_setup>
+				<setup>
+					<module>IntelligentReach_RakutenPayment</module>
+				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
+			</rakutenpayment_setup>
+			<rakutenpayment_write>
+				<connection>
+				  <use>core_write</use>
+				</connection>
+			</rakutenpayment_write>
+			<rakutenpayment_read>
+			   <connection>
+				<use>core_read</use>
+			  </connection>
+			</rakutenpayment_read>
+		</resources>
+	</global>
+ 
+	<default>
+		<payment>
+			<rakutenpayment>
+				<active>1</active>
+				<model>rakutenpayment/pay</model>
+				<order_status>pending</order_status>
+				<title>Rakuten Payment</title>
+			</rakutenpayment>
+		 </payment>
+	</default>
+</config>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<modules>
+	   <IntelligentReach_LazadaPayment>
+		  <version>1.0.28</version>
+	   </IntelligentReach_LazadaPayment>
+	</modules>
+	<global>
+    <blocks>
+        <lazadapayment>
+            <class>IntelligentReach_LazadaPayment_Block</class>
+        </lazadapayment>
+    </blocks>
+         <helpers>
+            <lazadapayment>  
+                <class>IntelligentReach_LazadaPayment_Helper</class>
+            </lazadapayment>
+        </helpers>
+		<models>
+			<lazadapayment>
+				<class>IntelligentReach_LazadaPayment_Model</class>
+			</lazadapayment>
+		</models>
+ 
+		<resources>
+			<lazadapayment_setup>
+				<setup>
+					<module>IntelligentReach_LazadaPayment</module>
+				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
+			</lazadapayment_setup>
+			<lazadapayment_write>
+				<connection>
+				  <use>core_write</use>
+				</connection>
+			</lazadapayment_write>
+			<lazadapayment_read>
+			   <connection>
+				<use>core_read</use>
+			  </connection>
+			</lazadapayment_read>
+		</resources>
+	</global>
+ 
+	<default>
+		<payment>
+			<lazadapayment>
+				<active>1</active>
+				<model>lazadapayment/pay</model>
+				<order_status>pending</order_status>
+				<title>Lazada Payment</title>
+			</lazadapayment>
+		 </payment>
+	</default>
+</config>
