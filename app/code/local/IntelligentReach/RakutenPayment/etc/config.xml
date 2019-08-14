@@ -2,7 +2,7 @@
 <config>
 	<modules>
 	   <IntelligentReach_RakutenPayment>
-		  <version>1.0.39</version>
+		  <version>1.0.40</version>
 	   </IntelligentReach_RakutenPayment>
 	</modules>
 	<global>

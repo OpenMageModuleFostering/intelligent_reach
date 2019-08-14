@@ -42,7 +42,7 @@ class IntelligentReach
 			echo "Temp File created: ". $this->_fileNameTemp."<br />";
 			$time = microtime(true);
 			file_put_contents($this->_fileNameTemp, "<?xml version=\"1.0\" encoding=\"utf-8\"?>
-					<products version=\"$this->_versionNumber\" type=\"cron\">", LOCK_EX);
+					<products version=\"$this->_versionNumber\" type=\"cron_opt\">", LOCK_EX);
 			$this->runTheTask($storeId);
 			file_put_contents($this->_fileNameTemp, '</products>', FILE_APPEND | LOCK_EX);
 
@@ -124,7 +124,8 @@ class IntelligentReach
 	{
 		$products = Mage::getModel('catalog/product')
 					->getCollection()
-					->addStoreFilter($storeId);
+					->addStoreFilter($storeId)
+					->addAttributeToSelect('*');
 		return $this->addAdditionalAttributeFilters($products);
 	}
 	
@@ -182,7 +183,7 @@ class IntelligentReach
 		$baseUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
 		$feedData = "";
 
-		$product = Mage::getModel('catalog/product')->load($args['row']['entity_id']);
+		$product = Mage::getModel('catalog/product')->setData($args['row']);
 		if ($product->getTypeId() == 'simple')
 		{
 			// use singleton saves re instantiating new model

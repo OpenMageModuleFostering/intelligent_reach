@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.39 Last updated by Kire on 16/06/2016 **/
+/** Version 1.0.40 Last updated by Kire on 27/07/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,8 +13,8 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionNumber = "1.0.39";
-	private $_lastUpdated = "16/06/2016";
+	private $_versionNumber = "1.0.40";
+	private $_lastUpdated = "27/07/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed";
 	private $_fileNameTemp = "";
