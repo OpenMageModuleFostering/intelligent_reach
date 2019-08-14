@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns:typens="urn:{{var wsdl.name}}" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+             xmlns="http://schemas.xmlsoap.org/wsdl/"
+             name="{{var wsdl.name}}" targetNamespace="urn:{{var wsdl.name}}">
+    <message name="shoppingCartShippingCustomIRMethodRequest">
+        <part name="sessionId" type="xsd:string"/>
+        <part name="quoteId" type="xsd:int"/>
+        <part name="method" type="xsd:string"/>
+				<part name="price" type="xsd:double"/>
+				<part name="description" type="xsd:string"/>
+        <part name="storeId" type="xsd:string"/>
+    </message>
+    <message name="shoppingCartShippingCustomIRMethodResponse">
+        <part name="result" type="xsd:boolean"/>
+    </message>
+    <portType name="{{var wsdl.handler}}PortType">
+        <operation name="shoppingCartShippingCustomIRMethod">
+            <documentation>Set shipping method and custom values</documentation>
+            <input message="typens:shoppingCartShippingCustomIRMethodRequest"/>
+            <output message="typens:shoppingCartShippingCustomIRMethodResponse"/>
+        </operation>
+    </portType>
+    <binding name="{{var wsdl.handler}}Binding" type="typens:{{var wsdl.handler}}PortType">
+        <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+				<operation name="shoppingCartShippingCustomIRMethod">
+            <soap:operation soapAction="urn:{{var wsdl.handler}}Action"/>
+            <input>
+                <soap:body namespace="urn:{{var wsdl.name}}" use="encoded"
+                           encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+            </input>
+            <output>
+                <soap:body namespace="urn:{{var wsdl.name}}" use="encoded"
+                           encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/>
+            </output>
+        </operation>
+    </binding>
+</definitions>

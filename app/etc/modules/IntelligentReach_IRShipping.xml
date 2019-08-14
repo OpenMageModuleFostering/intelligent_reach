@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+    <config>
+        <modules>
+            <IntelligentReach_IRShipping>
+                <active>true</active>
+                <codePool>local</codePool>
+            </IntelligentReach_IRShipping>
+        </modules>
+    </config>

@@ -2,7 +2,7 @@
 <config>
 	<modules>
 	   <IntelligentReach_TradeMePayment>
-		  <version>1.0.31</version>
+		  <version>1.0.33</version>
 	   </IntelligentReach_TradeMePayment>
 	</modules>
 	<global>

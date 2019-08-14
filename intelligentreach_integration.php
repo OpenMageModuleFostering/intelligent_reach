@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.31 Last updated by Kire on 10/11/2015 **/
+/** Version 1.0.33 Last updated by Kire on 10/11/2015 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -15,7 +15,7 @@ class IntelligentReach
   private $_splitby = 100;
   private $_amountOfProductsPerPage = 100;
   private $_lastPageNumber = 0;
-  private $_versionDisplay = "Version 1.0.31 <br />Last updated on 10/11/2015";
+  private $_versionDisplay = "Version 1.0.33 <br />Last updated on 10/11/2015";
 
   public function run() 
   {
