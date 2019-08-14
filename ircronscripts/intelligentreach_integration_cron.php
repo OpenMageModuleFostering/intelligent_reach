@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.41 Last updated by Kire on 10/08/2016 **/
+/** Version 1.0.42 Last updated by Kire on 24/08/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,8 +13,8 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionNumber = "1.0.41";
-	private $_lastUpdated = "10/08/2016";
+	private $_versionNumber = "1.0.42";
+	private $_lastUpdated = "24/08/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed";
 	private $_fileNameTemp = "";
@@ -341,41 +341,26 @@ class IntelligentReach
 		if((count($categories) == 0) || !isset($this->_categories[$categories[0]]))
 			return;
 
-		$categoryData = $this->_categories[$categories[0]];
-		$parentCategories = array_reverse(explode(',',$categoryData['path_in_store']));
-
-		$output = '';
-		foreach($parentCategories as $parent)
-		{
-			if(isset($this->_categories[$parent]))
-			{
-				$output .= $this->_categories[$parent]['name'];
-				if($parent !== end($parentCategories))
-					$output .= ' > ';
-			}
-		}
+		$output = $this->getCategoryPath($categories[0]);
 
 		if($output != "") 
 		{
 			/** Old Category Path code: will be deleted in the future. **/
-			$feedData .= '<category_path><![CDATA[' . $output . ']]></category_path>';
+			$feedData .= '<category_path><![CDATA['.$output.']]></category_path>';
 			/** End of Old Category path code **/
 			/** New Category Path code **/
-			$feedData .=  '<ir_category_path><![CDATA['.$output.']]></ir_category_path>';
+			$feedData .= '<ir_category_path><![CDATA['.$output.']]></ir_category_path>';
 			/** End of New Category Path code **/
 		}
 
 		/** New longest Category Path code **/
 		$validCategoryPaths = array();
-		$catPath = '';
 		foreach($categories as $cat)
 		{
+			$catPath = '';
 			if(isset($this->_categories[$cat]))
-			{
-				$catPath .= $this->_categories[$cat]['name'];
-				if ($cat !== end($categories))
-					$catPath .= ' > ';
-			}
+				$catPath = $this->getCategoryPath($cat);
+
 			if($catPath != "")
 			{
 				if($this->getIntelligentReachCategoryExclusions($storeId) != "")
@@ -491,6 +476,24 @@ class IntelligentReach
 		foreach($this->_parentProducts as $parentProduct)
 			$parentProduct->clearInstance();
 		$this->_parentProducts = array(); // clear parent products		
+	}
+
+	public function getCategoryPath($categoryPath)
+	{
+		$categoryData = $this->_categories[$categoryPath];
+		$categoryList = array_reverse(explode(',',$categoryData['path_in_store']));
+
+		$catPath = "";
+		foreach($categoryList as $cat)
+		{
+			if(isset($this->_categories[$cat]))
+			{
+				$catPath .= $this->_categories[$cat]['name'];
+				if ($cat !== end($categoryList))
+					$catPath .= ' > ';
+			}
+		}
+		return $catPath;
 	}
 
 	/**
