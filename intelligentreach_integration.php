@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.34 Last updated by Kire on 03/02/2016 **/
+/** Version 1.0.35 Last updated by Kire on 03/02/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -15,7 +15,7 @@ class IntelligentReach
   private $_splitby = 100;
   private $_amountOfProductsPerPage = 100;
   private $_lastPageNumber = 0;
-  private $_versionDisplay = "Version 1.0.33 <br />Last updated on 10/11/2015";
+  private $_versionDisplay = "Version 1.0.35 <br />Last updated on 03/02/2016";
 
   public function run() 
   {
@@ -209,15 +209,14 @@ class IntelligentReach
 					if((isset($parentProduct)) && ($parentProduct->getStatus() == Mage_Catalog_Model_Product_Status::STATUS_DISABLED))
 						$value = "Disabled";
 				}
+				
 				if(is_array($value))
 				{
 					foreach($value as $vkey => $vvalue)
 					{		
 						foreach($vvalue as $pkey => $pvalue)
 						{
-							echo "<".$key."_".$vkey."_".$pkey.">";							
-							echo $pvalue;
-							echo "</".$key."_".$vkey."_".$pkey.">";
+							echo "<".$key."_".$vkey."_".$pkey."><![CDATA[".$pvalue."]]></".$key."_".$vkey."_".$pkey.">";
 						}
 					}
 					continue;
@@ -359,7 +358,17 @@ class IntelligentReach
 			if ($key == 'thumbnail')
 				$value = $baseUrl . "media/catalog/product" . $value;
 				
-			$value = is_array($value) ? implode(" ", $value) : $value;
+			if(is_array($value))
+			{
+				foreach($value as $vkey => $vvalue)
+				{		
+					foreach($vvalue as $pkey => $pvalue)
+					{
+						echo "<".$key."_".$vkey."_".$pkey."><![CDATA[".$pvalue."]]></".$key."_".$vkey."_".$pkey.">";
+					}
+				}
+				continue;
+			}
 			if(version_compare(PHP_VERSION, '5.4.0', '>='))
 				$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
 			else
