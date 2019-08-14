@@ -1,12 +1,11 @@
 <?php
 
-/** Version 1.0.29 Last updated by Kire on 06/10/2015 **/
+/** Version 1.0.30 Last updated by Kire on 07/10/2015 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
 umask(0);
 Mage::app();
-
 
 $ir = new IntelligentReach();
 $ir->run();
@@ -16,7 +15,7 @@ class IntelligentReach
   private $_splitby = 100;
   private $_amountOfProductsPerPage = 100;
   private $_lastPageNumber = 0;
-  private $_versionDisplay = "Version 1.0.29 <br />Last updated on 06/10/2015";
+  private $_versionDisplay = "Version 1.0.30 <br />Last updated on 07/10/2015";
 
   public function run() 
   {
@@ -75,20 +74,22 @@ class IntelligentReach
     echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
     echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
     echo "<h5>".$this->_versionDisplay."</h5></div>";
-  }
+}
 
-  public function getSections($sections) 
-  {
-    $pages = $this->_lastPageNumber;
-    echo "<table cellspacing='2px;' border='1px;' cellpadding='8px;'>";
-    echo "<tr><th>Section</th><th>Pages</th></tr>";
+	public function getSections($sections)
+	{
+		$convertNumberToWord = (isset($_GET["convertNumberToWord"])) ? "&convertNumberToWord=1" : "";
+		$stripInvalidChars = (isset($_GET["stripInvalidChars"])) ? "&stripInvalidChars=1" : "";
+		$pages = $this->_lastPageNumber;
+		echo "<table cellspacing='2px;' border='1px;' cellpadding='8px;'>";
+		echo "<tr><th>Section</th><th>Pages</th></tr>";
     for ($i = $sections; $i > 0; $i--) 
     {
       $startingPage = $pages - $this->_splitby + 1;
       if ($startingPage < 1)
         $startingPage = 1;
      
-      echo "<tr><td><a href='?storeid=" . $_GET["storeid"] . "&startingpage=" . $startingPage . "&endpage=" . $pages . "&splitby=".$this->_splitby ."&amountofproducts=".$this->_amountOfProductsPerPage."'>" . $i . "</a></td><td>" . $startingPage . "-" . $pages . "</td></tr>";
+      echo "<tr><td><a href='?storeid=" . $_GET["storeid"] . "&startingpage=" . $startingPage . "&endpage=" . $pages . "&splitby=".$this->_splitby ."&amountofproducts=".$this->_amountOfProductsPerPage.$convertNumberToWord.$stripInvalidChars."'>" . $i . "</a></td><td>" . $startingPage . "-" . $pages . "</td></tr>";
       $pages = $startingPage - 1;
     }
     echo "</table>";
@@ -109,8 +110,13 @@ class IntelligentReach
     echo "<p>You can also set the value of the number of products per page that is returned, by setting the parameter <strong>'amountofproducts'</strong> in the URL</p>";
     echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&splitby=100&<strong>amountofproducts=100</strong></p>";
     echo "<p><strong>NB:</strong> The default value for <strong>'splitby'</strong> is 100 and for <strong>'amountofproducts'</strong> is 100.</p>";
-    echo "<p>You can also retrieve all products but using the 'getall' parameter</p>";
+		echo "<h3>Other options</h3>";
+    echo "<p>You can retrieve all products by using the <strong>'getall'</strong> parameter</p>";
     echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>getall=1</strong></p>";
+		echo "<p>To enable the stripping of invalid XML characters add the <strong>'stripInvalidChars'</strong> parameter</p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>stripInvalidChars=1</strong></p>";
+		echo "<p>To enable the converting of the first character in the XML tag from a number to a word, use the <strong>'convertNumberToWord'</strong> parameter.</p>";
+		echo "<strong>e.g.</strong> http://www.exampledomain.com/intelligentreach_integration.php?storeid=1&<strong>convertNumberToWord=1</strong></p>";
     echo "</div>";
 		echo "<div style='float:left; padding-left:50px;'><h5>";
 		echo $this->_versionDisplay;
@@ -195,20 +201,25 @@ class IntelligentReach
             echo " <image_".($i + 1)."><![CDATA[". $baseUrl . "media/catalog/product" . $value['images'][$i]['file']."]]></image_".($i + 1).">";
           continue;
         }
- 
-		$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+        
+				$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+				$value = $this->stripInvalidXMLCharacters($value);
+
         $value = "<![CDATA[$value]]>";
 
         $key = str_replace('"', '', $key);
-
+				if(is_numeric($key[0]) && isset($_GET["convertNumberToWord"]))
+					$key = $this->convertNumberToWord($key[0]).substr($key, 1);
         echo '<' . $key . '>' . $value . '</' . $key . '>';
       }
     }
 
     $categories = $product->getCategoryIds();
-	$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($categories[0]);
+		if((count($categories) == 0) && isset($parentProduct))
+			$categories = $parentProduct->getCategoryIds();
+		$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($categories[0]);
 		
-	/** Old Category Path code: will be deleted in the future. **/
+		/** Old Category Path code: will be deleted in the future. **/
     $cat_parentCategories = array_reverse($category->getParentCategories(), true);
     $output = "";
 
@@ -220,69 +231,88 @@ class IntelligentReach
     }
     if($output != "")
     echo '<category_path><![CDATA['.$output.']]></category_path>';
-	 /** End of Old Category path code **/
+		/** End of Old Category path code **/
 	
-	/** New Category Path code **/
-	$pathIds =  array_reverse(explode(",", $category->getPathInStore()), true);
-	$path = "";
-	foreach($pathIds as $pathId)
-	{
-		$path .= Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($pathId)->getName();
-		if($pathId != end($pathIds))
-			$path .= ' > ';
-	}
-	if($path != "")
-		echo '<ir_category_path><![CDATA['.$path.']]></ir_category_path>';
-	/** End of New Category Path code **/
-	
-	/** New longest Category Path code **/
-	$validCategoryPaths = array();
-	$intelligent_reach_category_exclusions = Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_category_exclusions')->getValue();
-	foreach($categories as $cat)
-	{
-		$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($cat);
-	   	$pathIds =  array_reverse(explode(",", $category->getPathInStore()), true);
-		$catpath = "";
+		/** New Category Path code **/
+		$pathIds =  array_reverse(explode(",", $category->getPathInStore()), true);
+		$path = "";
 		foreach($pathIds as $pathId)
 		{
-			$catpath .= Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($pathId)->getName();
+			$path .= Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($pathId)->getName();
 			if($pathId != end($pathIds))
-				$catpath .= ' > ';
+				$path .= ' > ';
 		}
-		if($catpath != "")
+		if($path != "")
+			echo '<ir_category_path><![CDATA['.$path.']]></ir_category_path>';
+		/** End of New Category Path code **/
+		
+		/** New longest Category Path code **/
+		$validCategoryPaths = array();
+    $intelligent_reach_category_exclusions = Mage::getModel('core/variable')->setStoreId($store_id)->loadByCode('intelligent_reach_category_exclusions')->getValue();
+		foreach($categories as $cat)
 		{
-			if($intelligent_reach_category_exclusions != "")
+			$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($cat);
+				$pathIds =  array_reverse(explode(",", $category->getPathInStore()), true);
+			$catpath = "";
+			foreach($pathIds as $pathId)
 			{
-			  if(preg_match('/('.$intelligent_reach_category_exclusions.')/i', $catpath) != true)
+				$catpath .= Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($pathId)->getName();
+				if($pathId != end($pathIds))
+					$catpath .= ' > ';
+			}
+			if($catpath != "")
+			{			
+			 if($intelligent_reach_category_exclusions != "")
+       {
+        if(preg_match('/('.$intelligent_reach_category_exclusions.')/i', $catpath) != true)
+					array_push($validCategoryPaths, $catpath);
+       }
+			 else 
 				array_push($validCategoryPaths, $catpath);
 			}
-			else
-			 array_push($validCategoryPaths, $catpath);
 		}
-	}
-	if(count($validCategoryPaths) != 0)
-	{	
-		if(count($validCategoryPaths) > 1)
-			usort($validCategoryPaths, function ($a, $b) { return (strlen($a) < strlen($b)); });  
-		echo "<ir_longest_category_path><![CDATA[".$validCategoryPaths[0]."]]></ir_longest_category_path>";
-	}
-	else if($path != "")
-		echo '<ir_longest_category_path><![CDATA['.$path.']]></ir_longest_category_path>';
-	/** End of New longest Category Path code **/
-	
-	if(isset($parentProduct))
-	{
-		 echo '<ir_parent_entity_id><![CDATA['.$parentProduct->getId().']]></ir_parent_entity_id>';
-		 echo '<ir_parent_sku><![CDATA['.$parentProduct->getSku().']]></ir_parent_sku>';
-		 echo '<ir_parent_url><![CDATA[' . trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl())) . ']]></ir_parent_url>'; 
-		 echo '<ir_parent_image_url><![CDATA['. $baseUrl . 'media/catalog/product' .$parentProduct->getImage().']]></ir_parent_image_url>';
-	}
+		if(count($validCategoryPaths) != 0)
+		{
+			if(count($validCategoryPaths) > 1)
+				usort($validCategoryPaths, function ($a, $b) { return (strlen($a) < strlen($b)); });  
+			echo "<ir_longest_category_path><![CDATA[".$validCategoryPaths[0]."]]></ir_longest_category_path>";
+		}
+		else if($path != "")
+			echo '<ir_longest_category_path><![CDATA['.$path.']]></ir_longest_category_path>';
+		/** End of New longest Category Path code **/
+		
+		if(isset($parentProduct))
+		{
+			echo '<ir_parent_entity_id><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getId()).']]></ir_parent_entity_id>';
+			echo '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
+			echo '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
+			echo '<ir_parent_image_url><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image_url>';
+			$gallery = $parentProduct->getMediaGallery();
+			if(count($gallery['images']) != 0)
+			{
+				for($i = 0; $i < count($gallery['images']); $i++)
+				echo " <ir_parent_image_".($i + 1)."><![CDATA[". $baseUrl . "media/catalog/product" . $gallery['images'][$i]['file']."]]></ir_parent_image_".($i + 1).">";
+			}
+		}
 
     echo '</product>';
     if (is_object($parentIds))
       $parentIds->clearInstance();
     
     $product->clearInstance();
+  }
+
+  public function stripInvalidXMLCharacters($value) 
+  {
+	  if(!isset($_GET["stripInvalidChars"]))
+	    return $value;
+    return preg_replace("/[^A-Za-z0-9\d\!\"\$%^&*:;?'@~#{}|`()\\/.,_+=\-<>\s]/u", '', $value);
+  } 
+  
+  public function convertNumberToWord($number)
+  {
+    $dictionary = array( 0 => 'zero', 1 => 'one', 2 => 'two', 3 => 'three', 4 => 'four', 5 => 'five', 6 => 'six', 7 => 'seven', 8 => 'eight', 9 => 'nine');
+	  return $dictionary[$number];
   }
 }
 
