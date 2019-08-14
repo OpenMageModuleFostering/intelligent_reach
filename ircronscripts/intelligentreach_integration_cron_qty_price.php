@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.40 Last updated by Kire on 27/07/2016 **/
+/** Version 1.0.41 Last updated by Kire on 10/08/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,8 +13,8 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionNumber = "1.0.40";
-	private $_lastUpdated = "27/07/2016";
+	private $_versionNumber = "1.0.41";
+	private $_lastUpdated = "10/08/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed_Quantity_And_Price";
 	private $_fileNameTemp = "";
@@ -104,15 +104,12 @@ class IntelligentReach
 		$products = Mage::getModel('catalog/product')
 				->getCollection()
 				->addStoreFilter($storeId)
-				->addAttributeToSelect(array('price', 'sku'), 'left');
+				->addAttributeToSelect(array('price', 'sku', 'special_from_date', 'special_to_date', 'special_price'), 'left');
 		return $this->addAdditionalAttributeFilters($products);
 	}
 	
 	public function addAdditionalAttributeFilters($products)
-	{
-		if(Mage::app()->getStore()->getConfig('catalog/frontend/flat_catalog_product'))
-			Mage::app()->getStore()->setConfig('catalog/frontend/flat_catalog_product', 0);
-		
+	{		
 		if($this->_includeDisabled)
 			$products->addAttributeToFilter('status', array('gt' => 0));
 		else
@@ -167,9 +164,27 @@ class IntelligentReach
 		$feedData .= '<qty><![CDATA['.(int)$args['row']['qty'].']]></qty>';
 		$feedData .= '<is_in_stock><![CDATA['.(int)$isInStock.']]></is_in_stock>';
 		$feedData .= '<price><![CDATA['.$args['row']['price'].']]></price>';
+		$feedData = $this->getSpecialPrice($args, $feedData);
 		$feedData .= '</product>'.PHP_EOL;
 
 		file_put_contents($this->_fileNameTemp, $feedData, FILE_APPEND | LOCK_EX);
+	}
+	
+	public function getSpecialPrice($args, $feedData)
+	{
+		$value = $args['row']['special_price'];
+		$specialPriceEnabledValue = is_null($value) ? 0 : 1;
+		$fromDate = $args['row']['special_from_date'];
+		$toDate = $args['row']['special_to_date'];
+
+		if($fromDate != null)
+			$specialPriceEnabledValue = (strtotime($fromDate) <= strtotime(date('Y-m-d'))) ? 1 : 0;
+		if($toDate != null)
+			$specialPriceEnabledValue = (strtotime(date('Y-m-d')) <= strtotime($toDate)) ? 1 : 0;
+
+		$feedData .= "<special_price_enabled><![CDATA[".$specialPriceEnabledValue."]]></special_price_enabled>";
+		$feedData .= "<special_price><![CDATA[".$value."]]></special_price>";
+		return $feedData;
 	}
 
 	/**

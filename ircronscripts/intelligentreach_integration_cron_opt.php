@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.40 Last updated by Kire on 27/07/2016 **/
+/** Version 1.0.41 Last updated by Kire on 10/08/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 ini_set('memory_limit', '2G');
@@ -13,8 +13,8 @@ $ir->run();
 
 class IntelligentReach
 {
-	private $_versionNumber = "1.0.40";
-	private $_lastUpdated = "27/07/2016";
+	private $_versionNumber = "1.0.41";
+	private $_lastUpdated = "10/08/2016";
 	private $_outputDirectory = "output";
 	private $_fileName = "Feed";
 	private $_fileNameTemp = "";
@@ -29,6 +29,7 @@ class IntelligentReach
 	private $_convertNumberToWord = false;
 	private $_includeDisabled = false;
 	private $_includeNonSimpleProducts = false;
+	private $_maxParentProductCacheSize = 100;
 
 	public function run()
 	{
@@ -130,10 +131,7 @@ class IntelligentReach
 	}
 	
 	public function addAdditionalAttributeFilters($products)
-	{
-		if(Mage::app()->getStore()->getConfig('catalog/frontend/flat_catalog_product') == 1)
-			Mage::app()->getStore()->setConfig('catalog/frontend/flat_catalog_product', 0);
-		
+	{		
 		if($this->_includeDisabled)
 			$products->addAttributeToFilter('status', array('gt' => 0));
 		else
@@ -165,10 +163,8 @@ class IntelligentReach
 			$products->clear();
 			unset($products);
 
-			foreach($this->_parentProducts as $parentProduct)
-				$parentProduct->clearInstance();
+			$this->clearParentProductCache();
 
-			$this->_parentProducts = array(); // clear parent products
 			ob_flush();
 			flush();
 			echo " ".(memory_get_usage(true))." bytes ";
@@ -468,6 +464,8 @@ class IntelligentReach
 
 	public function getParentProduct($parentId)
 	{
+		if(count($this->_parentProducts) >= $this->_maxParentProductCacheSize)
+			$this->clearParentProductCache();
 		if(!isset($this->_parentProducts[$parentId]))
 			$this->_parentProducts[$parentId] = Mage::getModel('catalog/product')->load($parentId);
 		return $this->_parentProducts[$parentId];
@@ -487,6 +485,13 @@ class IntelligentReach
 			return htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
 		else
 			return htmlentities($value, ENT_COMPAT, "UTF-8");
+	}
+
+	public function clearParentProductCache()
+	{
+		foreach($this->_parentProducts as $parentProduct)
+			$parentProduct->clearInstance();
+		$this->_parentProducts = array(); // clear parent products		
 	}
 
 	/**
