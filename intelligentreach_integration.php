@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.35 Last updated by Kire on 03/02/2016 **/
+/** Version 1.0.36 Last updated by Kire on 27/04/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -15,20 +15,19 @@ class IntelligentReach
   private $_splitby = 100;
   private $_amountOfProductsPerPage = 100;
   private $_lastPageNumber = 0;
-  private $_versionDisplay = "Version 1.0.35 <br />Last updated on 03/02/2016";
+  private $_versionDisplay = "Version 1.0.36 <br />Last updated on 27/04/2016";
 
   public function run() 
   {
-    $prodcoll = $this->getProducts(1);
-    $this->_lastPageNumber = $prodcoll->getLastPageNumber();
-    if (isset($_GET["splitby"]))
-      $this->_splitby = $_GET["splitby"];
-    if (isset($_GET["amountofproducts"]))
-      $this->_amountOfProductsPerPage = $_GET["amountofproducts"];
-
     // If a store id was provided then print the products to the output.
     if ($this->storeIsSelected()) 
     {
+      if (isset($_GET["splitby"]))
+        $this->_splitby = $_GET["splitby"];
+      if (isset($_GET["amountofproducts"]))
+        $this->_amountOfProductsPerPage = $_GET["amountofproducts"];
+      $this->_lastPageNumber = ceil($this->getProductCollection()->getSize() / $this->_amountOfProductsPerPage);
+      
       if ((isset($_GET["startingpage"]) && isset($_GET["endpage"])) || isset($_GET["getall"])) 
       {
         header("Content-Type: text/xml; charset=UTF-8");
@@ -74,7 +73,7 @@ class IntelligentReach
     echo "e.g. http://www.exampledomain.com/intelligentreach_integration.php?storeid=1</p>";
     echo "<p><strong>NB:</strong> The Store Id parameter name is case sensitive. Only use \"storeid=\" not another variation.</p>";
     echo "<h5>".$this->_versionDisplay."</h5></div>";
-}
+  }
 
 	public function getSections($sections)
 	{
@@ -133,10 +132,19 @@ class IntelligentReach
 		if(isset($_GET["storeid"]))
 			Mage::app()->setCurrentStore($_GET["storeid"]);
 	  
-    $products = Mage::getModel('catalog/product')->getCollection()->addStoreFilter($_GET["storeid"]);
-		$products->setPage($page, $this->_amountOfProductsPerPage);
-    $products->addAttributeToSelect('*');
+    $products = $this->getProductCollection();
+    
+    $products->getSelect()
+      ->limit($this->_amountOfProductsPerPage,($page - 1) * $this->_amountOfProductsPerPage);
+    
     return $products;
+  }
+  
+  public function getProductCollection()
+  {
+    return Mage::getModel('catalog/product')->getCollection()
+    ->addStoreFilter($_GET["storeid"])
+    ->addAttributeToSelect('*');
   }
 
   // Run the task
@@ -146,11 +154,12 @@ class IntelligentReach
     {
       $products = $this->getProducts($startPage);
       if ($products->count() == 0)
-        $this->_log('There are no products to export', true);
+        Mage::log('File: intelligentreach_integration.php, Error: There are no products to export at page '.$startPage.' when the amount of products per page is '. $this->_amountOfProductsPerPage);
       else 
       {
-        Mage::getSingleton('core/resource_iterator')
-                ->walk($products->getSelect(), array(array($this, 'printProducts')));
+				foreach($products as $product){
+					$this->printProducts($product);
+				}
       }
       $startPage = $startPage + 1;
       unset($products);
@@ -158,12 +167,11 @@ class IntelligentReach
     }
   }
     
-  public function printProducts($args) 
+  public function printProducts($product) 
   {
 		$parentIds = null;
     $baseUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
-
-    $product = Mage::getModel('catalog/product')->load($args['row']['entity_id']);
+		
 		if ($product->getTypeId() == 'simple') 
     {
       $parentIds = Mage::getModel('catalog/product_type_grouped')->getParentIdsByChild($product->getId());
@@ -209,6 +217,20 @@ class IntelligentReach
 					if((isset($parentProduct)) && ($parentProduct->getStatus() == Mage_Catalog_Model_Product_Status::STATUS_DISABLED))
 						$value = "Disabled";
 				}
+        
+        if($key == 'special_price')
+        {
+          $specialPriceEnabledValue = is_null($value) ? 0 : 1;
+          $fromDate = $product->getResource()->getAttribute('special_from_date')->getFrontend()->getValue($product);
+          $toDate = $product->getResource()->getAttribute('special_to_date')->getFrontend()->getValue($product);
+    
+          if($fromDate != null)
+           $specialPriceEnabledValue = (strtotime($fromDate) <= strtotime(date('Y-m-d'))) ? 1 : 0;
+          if($toDate != null)
+           $specialPriceEnabledValue = (strtotime(date('Y-m-d')) <= strtotime($toDate)) ? 1 : 0;
+         
+          echo "<special_price_enabled><![CDATA[".$specialPriceEnabledValue."]]></special_price_enabled>";
+        }        
 				
 				if(is_array($value))
 				{
@@ -231,9 +253,9 @@ class IntelligentReach
         $value = "<![CDATA[$value]]>";
 
         $key = str_replace('"', '', $key);
-				if(is_numeric($key[0]) && isset($_GET["convertNumberToWord"]))
+				if(is_numeric($key[0]))
 					$key = $this->convertNumberToWord($key[0]).substr($key, 1);
-        echo '<' . $key . '>' . $value . '</' . $key . '>';
+				echo '<' . $key . '>' . $value . '</' . $key . '>';
       }
     }
 		
@@ -332,8 +354,6 @@ class IntelligentReach
 			echo '<ir_longest_category_path><![CDATA['.$path.']]></ir_longest_category_path>';
 		/** End of New longest Category Path code **/
 		
-
-
     echo '</product>';
     if (is_object($parentIds))
       unset($parentIds);
@@ -378,7 +398,7 @@ class IntelligentReach
 			$value = "<![CDATA[$value]]>";
 
 			$key = str_replace('"', '', $key);
-			if(is_numeric($key[0]) && isset($_GET["convertNumberToWord"]))
+			if(is_numeric($key[0]))
 				$key = $this->convertNumberToWord($key[0]).substr($key, 1);
 			echo '<ir_parent_' . $key . '>' . $value . '</ir_parent_' . $key . '>';
 		
@@ -394,6 +414,8 @@ class IntelligentReach
   
   public function convertNumberToWord($number)
   {
+    if(!isset($_GET["convertNumberToWord"]))
+	    return $number;
     $dictionary = array( 0 => 'zero', 1 => 'one', 2 => 'two', 3 => 'three', 4 => 'four', 5 => 'five', 6 => 'six', 7 => 'seven', 8 => 'eight', 9 => 'nine');
 	  return $dictionary[$number];
   }

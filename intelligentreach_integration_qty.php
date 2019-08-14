@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.35 Last updated by Kire on 24/09/2015 **/
+/** Version 1.0.36 Last updated by Kire on 27/04/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -16,20 +16,19 @@ class IntelligentReach
   private $_splitby = 100;
 	private	$_amountOfProductsPerPage = 100;
   private $_lastPageNumber = 0;
-	private $_versionDisplay = "Version 1.0.35 <br />Last updated on 24/09/2015";
+	private $_versionDisplay = "Version 1.0.36 <br />Last updated on 27/04/2016";
 
   public function run() 
   {
-    $prodcoll = $this->getProducts(1);
-    $this->_lastPageNumber = $prodcoll->getLastPageNumber();
-    if (isset($_GET["splitby"]))
-      $this->_splitby = $_GET["splitby"];
-		if (isset($_GET["amountofproducts"]))
-      $this->_amountOfProductsPerPage = $_GET["amountofproducts"];
-
     // If a store id was provided then print the products to the output.
     if ($this->storeIsSelected()) 
     {
+      if (isset($_GET["splitby"]))
+        $this->_splitby = $_GET["splitby"];
+      if (isset($_GET["amountofproducts"]))
+        $this->_amountOfProductsPerPage = $_GET["amountofproducts"];
+      $this->_lastPageNumber = ceil($this->getProductCollection()->getSize() / $this->_amountOfProductsPerPage);
+      
       if ((isset($_GET["startingpage"]) && isset($_GET["endpage"])) || isset($_GET["getall"])) 
       {
         header("Content-Type: text/xml; charset=UTF-8");
@@ -123,12 +122,28 @@ class IntelligentReach
   {
 		if(isset($_GET["storeid"]))
 			Mage::app()->setCurrentStore($_GET["storeid"]);
-	  
-    $products = Mage::getModel('catalog/product')->getCollection()->addStoreFilter($_GET["storeid"]);
-		$products->setPage($page, $this->_amountOfProductsPerPage);
-    $products->addAttributeToSelect('*');
-    $products->addAttributeToFilter('status', array('eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED));
+	     
+    $products = $this->getProductCollection();
+
+    // join stock item, saves having to load the stock item model.
+    $products
+       ->getSelect()
+        ->limit($this->_amountOfProductsPerPage,($page - 1) * $this->_amountOfProductsPerPage)
+        ->joinLeft(array('si'=>'cataloginventory_stock_item'),'e.entity_id = si.product_id',
+            array('use_config_manage_stock','manage_stock','qty','is_in_stock'))
+        ->group('e.entity_id') // sometimes there can be duplicate stock items.
+        ->order('e.entity_id');
+        
     return $products;
+  }
+  
+  public function getProductCollection()
+  {
+    return Mage::getModel('catalog/product')
+      ->getCollection()
+      ->addStoreFilter($_GET["storeid"])
+      ->addAttributeToSelect('price', 'left')
+      ->addAttributeToFilter('status', array('eq' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED));
   }
 
   // Run the task
@@ -138,13 +153,13 @@ class IntelligentReach
     {
       $products = $this->getProducts($startPage);
       if ($products->count() == 0)
-        $this->_log('There are no products to export', true);
+        Mage::log('File: intelligentreach_integration_qty.php, Error: There are no products to export at page '.$startPage.' when the amount of products per page is '. $this->_amountOfProductsPerPage);
       else 
       {
         Mage::getSingleton('core/resource_iterator')
                 ->walk($products->getSelect(), array(array($this, 'printProducts')));
       }
-      $startPage = $startPage + 1;
+      $startPage++;
       unset($products);
       flush();
     }
@@ -152,15 +167,24 @@ class IntelligentReach
 
   public function printProducts($args)
   {
-    $product =  Mage::getModel('catalog/product')->load($args['row']['entity_id']);
-    
-    $inventoryProduct = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
-    echo'<product>';
-    echo '<entity_id><![CDATA['.$inventoryProduct->getProductId().']]></entity_id>';
-    echo '<qty><![CDATA['.(int)$inventoryProduct->getQty().']]></qty>';
-    echo '<is_in_stock><![CDATA['.(int)$inventoryProduct->getIsInStock().']]></is_in_stock>';            
+    // We check for manage stock. This is implemented in the catalog inventory stock item model however we don't want to load the model.
+    $manageStock = $args['row']['manage_stock'];
+    $configManageStock = $args['row']['use_config_manage_stock'];
+    $isInStock = $args['row']['is_in_stock'];
+
+    if($configManageStock){
+      $manageStock = Mage::getStoreConfig(Mage_CatalogInventory_Model_Stock_Item::XML_PATH_MANAGE_STOCK);
+    }
+
+    if(!$manageStock){
+      $isInStock = true; // if we don't manage, "is in stock" is always true.
+    }
+
+    echo '<product>';
+    echo '<entity_id><![CDATA['. $args['row']['entity_id'].']]></entity_id>';
+    echo '<qty><![CDATA['.(int)$args['row']['qty'].']]></qty>';
+    echo '<is_in_stock><![CDATA['.(int)$isInStock.']]></is_in_stock>';
+    echo '<price><![CDATA['.$args['row']['price'].']]></price>';
     echo '</product>';
-        
-    $product->clearInstance();
   }
 }
