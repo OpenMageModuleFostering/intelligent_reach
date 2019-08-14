@@ -33,7 +33,7 @@ class IntelligentReach
 				header("Content-Type: text/xml; charset=UTF-8");
 				header("Cache-Control: no-cache, must-revalidate");
 				echo '<?xml version="1.0" encoding="utf-8"?>
-				<products version="1.0.37" type="web">';
+				<products version="1.0.37" type="web_pre">';
 					$this->runTheTask(isset($_GET["getall"]) ? 1 : $_GET["startingpage"], isset($_GET["getall"]) ? $this->_lastPageNumber : $_GET["endpage"]);
 				echo '</products>';
 			}
@@ -143,8 +143,7 @@ class IntelligentReach
 	public function getProductCollection()
 	{
 		return Mage::getModel('catalog/product')->getCollection()
-				->addStoreFilter($_GET["storeid"])
-				->addAttributeToSelect('*');
+				->addStoreFilter($_GET["storeid"]);
 	}
 
 	// Run the task
@@ -157,8 +156,8 @@ class IntelligentReach
 				Mage::log('File: intelligentreach_integration.php, Error: There are no products to export at page '.$startPage.' when the amount of products per page is '. $this->_amountOfProductsPerPage);
 			else 
 			{
-				foreach($products as $product)
-					$this->printProducts($product);
+				Mage::getSingleton('core/resource_iterator')
+					->walk($products->getSelect(), array(array($this, 'printProducts')),array('store_id' => $_GET["storeid"]));
 			}
 			$startPage = $startPage + 1;
 			unset($products);
@@ -166,11 +165,11 @@ class IntelligentReach
 		}
 	}
     
-	public function printProducts($product) 
+	public function printProducts($args) 
 	{
 		$parentIds = null;
 		$baseUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
-
+		$product = Mage::getModel('catalog/product')->load($args['row']['entity_id']);
 		if($product->getTypeId() == 'simple') 
 		{
 			$parentIds = Mage::getModel('catalog/product_type_grouped')->getParentIdsByChild($product->getId());
