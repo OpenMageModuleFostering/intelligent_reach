@@ -1,6 +1,6 @@
 <?php
 
-/** Version 1.0.33 Last updated by Kire on 10/11/2015 **/
+/** Version 1.0.34 Last updated by Kire on 03/02/2016 **/
 ini_set('display_errors', 1);
 ini_set('max_execution_time', 1800);
 include_once 'app/Mage.php';
@@ -160,6 +160,7 @@ class IntelligentReach
     
   public function printProducts($args) 
   {
+		$parentIds = null;
     $baseUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
 
     $product = Mage::getModel('catalog/product')->load($args['row']['entity_id']);
@@ -208,8 +209,24 @@ class IntelligentReach
 					if((isset($parentProduct)) && ($parentProduct->getStatus() == Mage_Catalog_Model_Product_Status::STATUS_DISABLED))
 						$value = "Disabled";
 				}
-        
-				$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+				if(is_array($value))
+				{
+					foreach($value as $vkey => $vvalue)
+					{		
+						foreach($vvalue as $pkey => $pvalue)
+						{
+							echo "<".$key."_".$vkey."_".$pkey.">";							
+							echo $pvalue;
+							echo "</".$key."_".$vkey."_".$pkey.">";
+						}
+					}
+					continue;
+				}
+				
+				if(version_compare(PHP_VERSION, '5.4.0', '>='))
+					$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+				else
+					$value = htmlentities($value, ENT_COMPAT, "UTF-8");
 				$value = $this->stripInvalidXMLCharacters($value);
 
         $value = "<![CDATA[$value]]>";
@@ -220,10 +237,38 @@ class IntelligentReach
         echo '<' . $key . '>' . $value . '</' . $key . '>';
       }
     }
+		
+		if(isset($parentProduct))
+		{
+		  if(isset($_GET["includeAllParentFields"]))
+					$this->printAllParentFields($parentProduct);
+			else
+			{
+				echo '<ir_parent_entity_id><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getId()).']]></ir_parent_entity_id>';
+				echo '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
+				echo '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
+				echo '<ir_parent_image><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image>';
+			}
+			$gallery = $parentProduct->getMediaGallery();
+			if(count($gallery['images']) != 0)
+			{
+				for($i = 0; $i < count($gallery['images']); $i++)
+				echo " <ir_parent_image_".($i + 1)."><![CDATA[". $baseUrl . "media/catalog/product" . $gallery['images'][$i]['file']."]]></ir_parent_image_".($i + 1).">";
+			}
+		}
 
     $categories = $product->getCategoryIds();
 		if((count($categories) == 0) && isset($parentProduct))
 			$categories = $parentProduct->getCategoryIds();
+		if(count($categories) == 0)
+		{
+		  echo '</product>';
+			if (is_object($parentIds))
+				unset($parentIds);
+			
+			unset($product);
+			return;
+		}
 		$category = Mage::getModel('catalog/category')->setStoreId($_GET["storeid"])->load($categories[0]);
 		
 		/** Old Category Path code: will be deleted in the future. **/
@@ -288,24 +333,7 @@ class IntelligentReach
 			echo '<ir_longest_category_path><![CDATA['.$path.']]></ir_longest_category_path>';
 		/** End of New longest Category Path code **/
 		
-		if(isset($parentProduct))
-		{
-		  if(isset($_GET["includeAllParentFields"]))
-					$this->printAllParentFields($parentProduct);
-			else
-			{
-				echo '<ir_parent_entity_id><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getId()).']]></ir_parent_entity_id>';
-				echo '<ir_parent_sku><![CDATA['.$this->stripInvalidXMLCharacters($parentProduct->getSku()).']]></ir_parent_sku>';
-				echo '<ir_parent_url><![CDATA[' . $this->stripInvalidXMLCharacters(trim(str_replace('/intelligentreach_integration.php', '', $parentProduct->getProductUrl()))) . ']]></ir_parent_url>';
-				echo '<ir_parent_image><![CDATA['.$this->stripInvalidXMLCharacters($baseUrl . 'media/catalog/product' . $parentProduct->getImage()).']]></ir_parent_image>';
-			}
-			$gallery = $parentProduct->getMediaGallery();
-			if(count($gallery['images']) != 0)
-			{
-				for($i = 0; $i < count($gallery['images']); $i++)
-				echo " <ir_parent_image_".($i + 1)."><![CDATA[". $baseUrl . "media/catalog/product" . $gallery['images'][$i]['file']."]]></ir_parent_image_".($i + 1).">";
-			}
-		}
+
 
     echo '</product>';
     if (is_object($parentIds))
@@ -330,8 +358,12 @@ class IntelligentReach
 
 			if ($key == 'thumbnail')
 				$value = $baseUrl . "media/catalog/product" . $value;
-			
-			$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+				
+			$value = is_array($value) ? implode(" ", $value) : $value;
+			if(version_compare(PHP_VERSION, '5.4.0', '>='))
+				$value = htmlentities($value, ENT_COMPAT | ENT_SUBSTITUTE, "UTF-8");
+			else
+				$value = htmlentities($value, ENT_COMPAT, "UTF-8");
 			$value = $this->stripInvalidXMLCharacters($value);
 
 			$value = "<![CDATA[$value]]>";
