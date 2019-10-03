@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Intelligent_Reach",
+    "name": "OpenMageModuleFostering\/Intelligent_Reach",
     "type": "magento-module",
     "license": "OSL",
     "homepage": "",
     "description": "This module integrates Magento with the Intelligent Reach platform, enabling product-level online marketing.",
     "authors": [
-    {
-        "name": "Intelligent Reach",
-        "email": "development@intelligentreach.com"
-    }
-],
+        {
+            "name": "Intelligent Reach",
+            "email": "development@intelligentreach.com"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
